@@ -1,4 +1,3 @@
-import * as THREE from './third_party/three.module.js';
 import { renderer, setSize, animate, render } from './modules/scene.js';
 
 document.body.appendChild(renderer.domElement);
