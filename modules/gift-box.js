@@ -68,7 +68,15 @@ class GiftBox extends Mesh {
     );
 
     geometry.applyMatrix(new Matrix4().makeRotationX(Maf.PI / 2));
-    const material = new MeshPhysicalMaterial({ color: 0xffffff, depthWrite: !false, opacity: .5, transparent: !true, wireframe: !true }); //new MeshPhysicalMaterial();
+    const material = new MeshPhysicalMaterial({
+      color: 0xffffff,
+      depthWrite: !false,
+      opacity: .5,
+      transparent: !true,
+      wireframe: !true,
+      roughness: .8,
+      metalness: 0
+    }); //new MeshPhysicalMaterial();
     super(geometry, material);
     this.castShadow = true;
     this.receiveShadow = true;

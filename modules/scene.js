@@ -1,4 +1,22 @@
-import { PCFSoftShadowMap, Scene, Group, Vector3, Matrix4, Object3D, Quaternion, PerspectiveCamera, WebGLRenderer, PointLight, CanvasTexture, Mesh, BoxBufferGeometry, MeshBasicMaterial } from '../third_party/three.module.js';
+import {
+  PCFSoftShadowMap,
+  DirectionalLight,
+  Scene,
+  Group,
+  Vector3,
+  Matrix4,
+  Object3D,
+  Quaternion,
+  PerspectiveCamera,
+  WebGLRenderer,
+  PointLight,
+  CanvasTexture,
+  Mesh,
+  BoxBufferGeometry,
+  MeshBasicMaterial,
+  FogExp2,
+  AmbientLight
+} from '../third_party/three.module.js';
 import OrbitControls from '../third_party/THREE.OrbitControls.js';
 
 import { GiftBox } from './gift-box.js';
@@ -16,17 +34,32 @@ renderer.shadowMap.type = PCFSoftShadowMap;
 
 //document.body.appendChild( WEBVR.createButton( renderer ) );
 
+const factor = 3;
+
 const scene = new Scene();
-const camera = new PerspectiveCamera(75, 1, .01, 10);
-camera.position.set(0, 0, 1.6);
+scene.fog = new FogExp2(0, .02);
+const camera = new PerspectiveCamera(75, 1, .01, 20 * factor);
+camera.position.set(0, 0, 1.6 * factor);
 camera.lookAt(scene.position);
+
+const ambient = new AmbientLight(0x404040);
+scene.add(ambient);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.screenSpacePanning = true;
 
-const light = new PointLight(0xffffff, 1, 100);
+const light = new DirectionalLight(0xffffff, 1, 100);
 light.position.set(5, 5, 5);
 light.castShadow = true;
+const s = 1;
+light.shadow.mapSize.width = light.shadow.mapSize.height = 32;
+light.shadow.left = -s;
+light.shadow.bottom = -s;
+light.shadow.right = s;
+light.shadow.top = s;
+light.shadow.camera.near = .1;
+light.shadow.camera.far = 30;
+light.shadow.camera.updateProjectionMatrix();
 //scene.add(light);
 
 const cameraLight = new PointLight(0xffffff, 1, 100);
@@ -46,7 +79,7 @@ function setSize(w, h) {
   camera.updateProjectionMatrix();
 }
 
-const duration = .25 * 2 * 7.385;
+const duration = .5 * 2 * 7.385;
 
 function render() {
   const delta = (performance.now() - startTime) / (duration * 1000);
@@ -62,13 +95,15 @@ function render() {
   boxes[Math.min(targetBox + 1, boxes.length - 1)].mesh.visible = true;
   //boxes[targetBox].mesh.material.color.setRGB(1, 0, 0);
   group.quaternion.copy(qFrom).slerp(qTo, easings.InOutQuad(delta % 1));
-  group.scale.setScalar(Math.exp(delta));
+  group.scale.setScalar(Math.exp(factor * delta));
   //camera.lookAt(group.position);
   camera.rotation.z = .5 * delta * Maf.TAU;
   cameraLight.position.copy(camera.position);
   cameraLight.position.y += .5;
   renderer.render(scene, camera);
 }
+
+const p = new Paper(512, 512);
 
 const target = new Vector3();
 const m = new Matrix4();
@@ -77,7 +112,7 @@ const group = new Group();
 const boxes = [];
 for (let j = 0; j < 200; j++) {
   const box = new GiftBox();
-  box.scale.setScalar(1 / Math.exp(j));
+  box.scale.setScalar(1 / Math.exp(factor * j));
   target.set(Maf.randomInRange(-1, 1), Maf.randomInRange(-1, 1), Maf.randomInRange(-1, 1)).normalize();
   m.lookAt(box.position, target, Object3D.DefaultUp);
   q.setFromRotationMatrix(m);
@@ -88,9 +123,8 @@ for (let j = 0; j < 200; j++) {
     mesh: box,
     quaternion: q.clone()
   });
-  /*const p = new Paper(512, 512);
   box.material.map = new CanvasTexture(p.colorCanvas);
-  box.material.roughnessMap = new CanvasTexture(p.roughnessCanvas);*/
+  box.material.roughnessMap = new CanvasTexture(p.roughnessCanvas);
 }
 scene.add(group);
 
