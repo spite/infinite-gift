@@ -90,6 +90,7 @@ scene.add(cameraLight);
 let startTime = 0;
 
 function animate() {
+  audio.play();
   startTime = performance.now();
   renderer.setAnimationLoop(render);
 }
@@ -103,10 +104,18 @@ function setSize(w, h) {
 const duration = .5 * 2 * 7.385;
 let envMap;
 let normalMap;
+let audio;
 
 function loadAssets() {
   const texLoader = new TextureLoader();
   return Promise.all([
+    new Promise((resolve, reject) => {
+      audio = document.createElement('audio');
+      audio.addEventListener('canplay', (e) => {
+        resolve();
+      });
+      audio.src = './assets/track.mp3';
+    }),
     new Promise((resolve, reject) => {
       normalMap = texLoader.load('./assets/normal.jpg', (res) => resolve());
       normalMap.wrapS = normalMap.wrapT = RepeatWrapping;

@@ -2,7 +2,7 @@ import { renderer, setSize, animate, render, init } from './modules/scene.js';
 
 async function run() {
   await init();
-  animate();
+  //animate();
   document.getElementById('start').addEventListener('click', (e) => {
     animate();
   })
