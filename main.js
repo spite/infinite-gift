@@ -1,4 +1,4 @@
-import { renderer, setSize, animate, render } from './modules/scene.js';
+import { renderer, setSize, animate, render, init } from './modules/scene.js';
 
 document.body.appendChild(renderer.domElement);
 renderer.domElement.className = 'render';
@@ -15,4 +15,10 @@ try {
 }
 
 setSize(document.body.clientWidth, document.body.clientHeight);
-animate();
+
+async function run() {
+  await init();
+  animate();
+}
+
+run();
