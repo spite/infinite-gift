@@ -108,11 +108,11 @@ function loadAssets() {
   const texLoader = new TextureLoader();
   return Promise.all([
     new Promise((resolve, reject) => {
-      normalMap = texLoader.load('../assets/normal.jpg', (res) => resolve());
+      normalMap = texLoader.load('./assets/normal.jpg', (res) => resolve());
       normalMap.wrapS = normalMap.wrapT = RepeatWrapping;
     }),
     new Promise((resolve, reject) => {
-      texLoader.load('../assets/env.jpg', (res) => {
+      texLoader.load('./assets/env.jpg', (res) => {
         const equiToCube = new EquirectangularToCubemap(renderer);
         envMap = equiToCube.convert(res, 512);
         envMap.needsUpdate = true;
