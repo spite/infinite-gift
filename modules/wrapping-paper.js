@@ -16,14 +16,20 @@ class WrappingPaper {
     this.metalnessCanvas.height = h;
     this.metalnessCtx = this.metalnessCanvas.getContext('2d');
 
-    document.body.appendChild(this.colorCanvas);
-    document.body.appendChild(this.roughnessCanvas);
+    // document.body.appendChild(this.colorCanvas);
+    // document.body.appendChild(this.roughnessCanvas);
 
     this.contexts = [
       this.colorCtx,
       this.roughnessCtx,
       this.metalnessCtx
     ];
+  }
+
+  clearRect(originX, originY, width, height) {
+    for (var i = 0; i < this.contexts.length; i++) {
+      this.contexts[i].clearRect(originX, originY, width, height);
+    }
   }
 
   drawRect(originX, originY, width, height, color, opts) {
@@ -35,18 +41,44 @@ class WrappingPaper {
             specularContext: ctxs
         };
     */
+    var contexts = [this.colorCtx];
     var colors = [];
     if (color) colors[0] = color;
     else colors[0] = "#000";
-    if (opts && this.specularCanvasContext) {
-      contexts[1] = this.specularCanvasContext;
+    if (opts && this.roughnessCtx) {
+      contexts[1] = this.roughnessCtx;
       if (opts.specularColor) colors[1] = opts.specularColor;
       else colors[1] = "#000";
     }
 
-    for (var i = 0; i < this.contexts.length; i++) {
-      this.contexts[i].fillStyle = colors[i];
-      this.contexts[i].fillRect(originX, originY, width, height);
+    for (var i = 0; i < contexts.length; i++) {
+      contexts[i].fillStyle = colors[i];
+      contexts[i].fillRect(originX, originY, width, height);
+    }
+  }
+
+  drawArc(centerX, centerY, radius, start_radians, radians, color, opts) {
+    var contexts = [this.colorCtx];
+    var colors = [];
+    if (color) colors[0] = this.hexToRgb(color);
+    else colors[0] = this.hexToRgb("#000");
+    var lineWidth = 10;
+    if (radians === undefined) var radians = Math.PI / 2;
+    if (opts && this.roughnessCtx) {
+      contexts[1] = this.roughnessCtx;
+      if (opts.specularColor) colors[1] = this.hexToRgb(opts.specularColor);
+      else colors[1] = this.hexToRgb("#000");
+      if (opts.lineWidth) lineWidth = opts.lineWidth;
+      else lineWidth = 10;
+    }
+
+    for (var i = 0; i < contexts.length; i++) {
+      contexts[i].beginPath();
+      contexts[i].lineWidth = lineWidth;
+      contexts[i].lineCap = "round";
+      contexts[i].arc(centerX, centerY, radius, start_radians, radians, false);
+      contexts[i].strokeStyle = "rgba(" + colors[i].r + "," + colors[i].g + "," + colors[i].b + ",1)";
+      contexts[i].stroke();
     }
   }
 

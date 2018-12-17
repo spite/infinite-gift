@@ -1,4 +1,4 @@
-import { Mesh, DoubleSide, PlaneGeometry, BufferAttribute, BufferGeometry, Geometry, MeshNormalMaterial, MeshBasicMaterial, MeshPhysicalMaterial, Vector3, Vector2, Face3, Matrix4 } from '../third_party/three.module.js';
+import { Mesh, Group, DoubleSide, PlaneGeometry, BufferAttribute, BufferGeometry, Geometry, MeshNormalMaterial, MeshBasicMaterial, MeshPhysicalMaterial, Vector3, Vector2, Face3, Matrix4 } from '../third_party/three.module.js';
 import { Maf } from './maf.js';
 
 function merge() {
@@ -31,19 +31,72 @@ function quad(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3) {
   pos[13] = y2;
   pos[14] = z2;
   geometry.computeVertexNormals();
+  const uvs = geometry.attributes.uv.array;
+  const wx = Math.max(x0, x1, x2, x3) - Math.min(x0, x1, x2, x3);
+  const wy = Math.max(y0, y1, y2, y3) - Math.min(y0, y1, y2, y3);
+  const wz = Math.max(z0, z1, z2, z3) - Math.min(z0, z1, z2, z3);
+  let w;
+  let h;
+  if (wx === 0) {
+    w = wz;
+    h = wy;
+  }
+  if (wy === 0) {
+    w = wx;
+    h = wz;
+  }
+  if (wz === 0) {
+    w = wx;
+    h = wy;
+  }
+  for (let i = 0; i < uvs.length; i += 2) {
+    uvs[i] /= w;
+    uvs[i + 1] /= h;
+  }
   return geometry;
 }
 
-class GiftBox extends Mesh {
+class GiftBox extends Group {
 
   constructor() {
+    super();
+
+    this.material = new MeshPhysicalMaterial({
+      color: 0xffffff,
+      roughness: .8,
+      metalness: 0
+    });
+
     const w = Maf.randomInRange(.75, 1);
     const h = Maf.randomInRange(.75, 1);
     const d = Maf.randomInRange(.75, 1);
+    const p = .01;
+
+    const boxGeometry = this.getGeometry(w, h, d, p);
+    boxGeometry.applyMatrix(new Matrix4().makeRotationX(Maf.PI / 2));
+    this.box = new Mesh(boxGeometry, this.material);
+    this.box.castShadow = true;
+    this.box.receiveShadow = true;
+    this.add(this.box);
+
+    this.pivot = new Group();
+    this.pivot.position.x = 1;
+    const lidGeometry = this.getGeometry(w + 2 * p, .25 * h, d + 2 * p, p);
+    lidGeometry.applyMatrix(new Matrix4().makeRotationX(-Maf.PI / 2));
+    lidGeometry.applyMatrix(new Matrix4().makeTranslation(0, 0, .5 * h));
+    this.lid = new Mesh(lidGeometry, this.material);
+    this.lid.castShadow = true;
+    this.lid.receiveShadow = true;
+    this.lid.position.x = -1;
+    this.pivot.add(this.lid);
+    this.pivot.rotation.y = Maf.PI / 4;
+    this.add(this.pivot);
+  }
+
+  getGeometry(w, h, d, p) {
     const hw = .5 * w;
     const hh = .5 * h;
     const hd = .5 * d;
-    const p = .01;
 
     const geometry = merge(
       quad(-hw, -hh, -hd, hw, -hh, -hd, hw, -hh, hd, -hw, -hh, hd),
@@ -63,23 +116,9 @@ class GiftBox extends Mesh {
       quad(-hw, hh, hd, hw, hh, hd, hw - p, hh, hd - p, -(hw - p), hh, hd - p),
       quad(-hw, hh, -hd, -hw, hh, hd, -(hw - p), hh, hd - p, -(hw - p), hh, -(hd - p)),
       quad(hw, hh, hd, hw, hh, -hd, hw - p, hh, -(hd - p), hw - p, hh, hd - p),
-
-      //plane(-.25 * hw, hh, -.25 * hd, .25 * hw, hh, -.25 * hd, .25 * hw, hh, .25 * hd, -.25 * hw, hh, .25 * hd),
     );
 
-    geometry.applyMatrix(new Matrix4().makeRotationX(Maf.PI / 2));
-    const material = new MeshPhysicalMaterial({
-      color: 0xffffff,
-      depthWrite: !false,
-      opacity: .5,
-      transparent: !true,
-      wireframe: !true,
-      roughness: .8,
-      metalness: 0
-    }); //new MeshPhysicalMaterial();
-    super(geometry, material);
-    this.castShadow = true;
-    this.receiveShadow = true;
+    return geometry;
   }
 }
 
