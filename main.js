@@ -1,9 +1,15 @@
 import { renderer, setSize, animate, render, init } from './modules/scene.js';
 
+const startBtn = document.getElementById('start');
+const loading = document.getElementById('loading');
+
 async function run() {
   await init();
   //animate();
-  document.getElementById('start').addEventListener('click', (e) => {
+  loading.style.display = 'none';
+  startBtn.style.display = 'block';
+  startBtn.addEventListener('click', (e) => {
+    startBtn.style.display = 'none';
     animate();
   })
 }

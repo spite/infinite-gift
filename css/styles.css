@@ -38,3 +38,7 @@ body {
 #options a:hover {
   color: red;
 }
+
+#start {
+  display: none;
+}
