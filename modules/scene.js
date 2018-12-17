@@ -65,14 +65,19 @@ const factor = 3;
 const scene = new Scene();
 scene.fog = new FogExp2(0, .02);
 const camera = new PerspectiveCamera(60, 1, .01, 20 * factor);
-camera.position.set(0, 0, 1.6 * factor);
 camera.lookAt(scene.position);
+const cameraDummy = new Group();
+cameraDummy.position.set(0, 0, 1.6 * factor);
+cameraDummy.add(camera);
+scene.add(cameraDummy);
+/*camera.position.set(0, 0, 1.6 * factor);
+scene.add(camera);*/
 
 const ambient = new AmbientLight(0x404040);
 scene.add(ambient);
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.screenSpacePanning = true;
+//const controls = new OrbitControls(camera, renderer.domElement);
+//controls.screenSpacePanning = true;
 
 const cameraLight = new SpotLight(0xffffff, 1, 20 * factor, Math.PI / 4, .5, .1);
 cameraLight.castShadow = true;
@@ -109,7 +114,7 @@ function loadAssets() {
     new Promise((resolve, reject) => {
       texLoader.load('../assets/env.jpg', (res) => {
         const equiToCube = new EquirectangularToCubemap(renderer);
-        envMap = equiToCube.convert(res, 1024);
+        envMap = equiToCube.convert(res, 512);
         envMap.needsUpdate = true;
         resolve();
       });
@@ -131,6 +136,7 @@ const group = new Group();
 const boxes = [];
 const queue = [];
 const tileSize = 128;
+const paperSize = 512;
 
 const updateCanvas = document.createElement('canvas');
 updateCanvas.width = updateCanvas.height = tileSize;
@@ -146,6 +152,7 @@ function initScene() {
     target.set(Maf.randomInRange(-1, 1), Maf.randomInRange(-1, 1), Maf.randomInRange(-1, 1)).normalize();
     m.lookAt(box.position, target, Object3D.DefaultUp);
     q.setFromRotationMatrix(m);
+    q.set(0, 0, 0, 1);
     box.quaternion.copy(q);
     q.setFromRotationMatrix(m.getInverse(m));
     group.add(box);
@@ -167,16 +174,17 @@ function initScene() {
   renderer.render(scene, camera);
   boxes.forEach((b) => {
     const emptyCanvas = document.createElement('canvas');
-    emptyCanvas.width = emptyCanvas.height = 512;
-    b.mesh.material.map.setSize(512, 512);
+    emptyCanvas.width = emptyCanvas.height = paperSize;
+    b.mesh.material.map.setSize(paperSize, paperSize);
     b.mesh.material.map.update(emptyCanvas, 0, 0);
-    b.mesh.material.metalnessMap.setSize(512, 512);
+    b.mesh.material.metalnessMap.setSize(paperSize, paperSize);
     b.mesh.material.metalnessMap.update(emptyCanvas, 0, 0);
   });
 }
 
 function updateBox(ptr, count) {
   const box = boxes[ptr];
+  box.mesh.refresh();
   box.mesh.scale.setScalar(1 / Math.exp(factor * count));
   target.set(Maf.randomInRange(-1, 1), Maf.randomInRange(-1, 1), Maf.randomInRange(-1, 1)).normalize();
   m.lookAt(box.mesh.position, target, Object3D.DefaultUp);
@@ -189,7 +197,7 @@ function updateBox(ptr, count) {
 function updateWrappingPaper(ptr) {
   const box = boxes[ptr];
   const Paper = papers[~~Maf.randomInRange(0, papers.length)];
-  const p = new Paper(512, 512);
+  const p = new Paper(paperSize, paperSize);
   for (let y = 0; y < p.colorCanvas.height; y += tileSize) {
     for (let x = 0; x < p.colorCanvas.width; x += tileSize) {
       queue.push({
@@ -264,11 +272,11 @@ function render() {
   boxes[nextBox].mesh.pivot.rotation.y = 0;
   //boxes.forEach((b) => b.mesh.material.color.setRGB(1, 1, 1));
   //boxes[targetBox].mesh.material.color.setRGB(1, 0, 0);
-  group.quaternion.copy(qFrom).slerp(qTo, easings.InOutQuint(delta % 1));
+  group.quaternion.copy(qFrom).slerp(qTo, easings.InOutQuad(delta % 1));
   group.scale.setScalar(Math.exp(factor * delta));
   //camera.lookAt(group.position);
   camera.rotation.z = .5 * delta * Maf.TAU;
-  cameraLight.position.copy(camera.position);
+  cameraLight.position.copy(cameraDummy.position);
   cameraLight.position.y += .5;
   renderer.render(scene, camera);
 

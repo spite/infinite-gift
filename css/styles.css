@@ -20,3 +20,21 @@ body {
   width: 100%;
   height: 100%;
 }
+
+#options {
+  font-size: 40px;
+  color: white;
+  font-family: 'Fredericka the Great', cursive;
+  position: absolute;
+  z-index: 10;
+  color: white;
+}
+
+#options a {
+  color: inherit;
+  text-decoration: none;
+}
+
+#options a:hover {
+  color: red;
+}

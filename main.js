@@ -1,5 +1,15 @@
 import { renderer, setSize, animate, render, init } from './modules/scene.js';
 
+async function run() {
+  await init();
+  animate();
+  document.getElementById('start').addEventListener('click', (e) => {
+    animate();
+  })
+}
+
+run();
+
 document.body.appendChild(renderer.domElement);
 renderer.domElement.className = 'render';
 
@@ -15,10 +25,3 @@ try {
 }
 
 setSize(document.body.clientWidth, document.body.clientHeight);
-
-async function run() {
-  await init();
-  animate();
-}
-
-run();

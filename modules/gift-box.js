@@ -1,4 +1,4 @@
-import { Mesh, Group, DoubleSide, PlaneGeometry, BufferAttribute, BufferGeometry, Geometry, MeshNormalMaterial, MeshBasicMaterial, MeshPhysicalMaterial, Vector3, Vector2, Face3, Matrix4 } from '../third_party/three.module.js';
+import { Mesh, Group, DoubleSide, PlaneGeometry, BufferAttribute, BufferGeometry, Geometry, MeshNormalMaterial, MeshPhongMaterial, MeshPhysicalMaterial, Vector3, Vector2, Face3, Matrix4 } from '../third_party/three.module.js';
 import { Maf } from './maf.js';
 
 function merge() {
@@ -15,7 +15,7 @@ function merge() {
   return res;
 }
 
-function quad(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3) {
+function quad(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3, u0, v0, u1, v1, u2, v2, u3, v3, u, v) {
   const geometry = new BufferGeometry().fromGeometry(new PlaneGeometry(1, 1));
   const pos = geometry.attributes.position.array;
   pos[0] = x0;
@@ -32,27 +32,19 @@ function quad(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3) {
   pos[14] = z2;
   geometry.computeVertexNormals();
   const uvs = geometry.attributes.uv.array;
-  const wx = Math.max(x0, x1, x2, x3) - Math.min(x0, x1, x2, x3);
-  const wy = Math.max(y0, y1, y2, y3) - Math.min(y0, y1, y2, y3);
-  const wz = Math.max(z0, z1, z2, z3) - Math.min(z0, z1, z2, z3);
-  let w;
-  let h;
-  if (wx === 0) {
-    w = wz;
-    h = wy;
-  }
-  if (wy === 0) {
-    w = wx;
-    h = wz;
-  }
-  if (wz === 0) {
-    w = wx;
-    h = wy;
-  }
-  for (let i = 0; i < uvs.length; i += 2) {
-    uvs[i] /= w;
-    uvs[i + 1] /= h;
-  }
+  const ratio = v / u;
+  uvs[0] = u0;
+  uvs[1] = v0 * ratio;
+  uvs[2] = u1;
+  uvs[3] = v1 * ratio;
+  uvs[4] = u3;
+  uvs[5] = v3 * ratio;
+  uvs[6] = u1;
+  uvs[7] = v1 * ratio;
+  uvs[8] = u2;
+  uvs[9] = v2 * ratio;
+  uvs[10] = u3;
+  uvs[11] = v3 * ratio;
   return geometry;
 }
 
@@ -61,16 +53,20 @@ class GiftBox extends Group {
   constructor() {
     super();
 
+    this.padding = .01;
+
     this.material = new MeshPhysicalMaterial({
       color: 0xffffff,
       roughness: .8,
-      metalness: 0
+      metalness: 0,
+      emissive: 0x202020,
     });
 
-    const w = Maf.randomInRange(.75, 1);
-    const h = Maf.randomInRange(.75, 1);
-    const d = Maf.randomInRange(.75, 1);
-    const p = .01;
+    const parts = 8;
+    const w = ~~(Maf.randomInRange(.75, 1) * parts) / parts;
+    const d = ~~(Maf.randomInRange(.75, 1) * parts) / parts;
+    const h = ~~(Maf.randomInRange(.75, 1) * Math.max(w, d) * parts) / parts;
+    const p = this.padding;
 
     const boxGeometry = this.getGeometry(w, h, d, p);
     boxGeometry.applyMatrix(new Matrix4().makeRotationX(Maf.PI / 2));
@@ -89,8 +85,27 @@ class GiftBox extends Group {
     this.lid.receiveShadow = true;
     this.lid.position.x = -1;
     this.pivot.add(this.lid);
-    this.pivot.rotation.y = Maf.PI / 4;
+    this.pivot.rotation.y = 0;
     this.add(this.pivot);
+  }
+
+  refresh() {
+    const parts = 4;
+    const w = ~~(Maf.randomInRange(.75, 1) * parts) / parts;
+    const d = ~~(Maf.randomInRange(.75, 1) * parts) / parts;
+    const h = ~~(Maf.randomInRange(.75, 1) * Math.max(w, d) * parts) / parts;
+    const p = this.padding;
+
+    const boxGeometry = this.getGeometry(w, h, d, p);
+    boxGeometry.applyMatrix(new Matrix4().makeRotationX(Maf.PI / 2));
+    this.box.geometry = boxGeometry;
+    this.box.geometry.needsUpdate = true;
+
+    const lidGeometry = this.getGeometry(w + 2 * p, .25 * h, d + 2 * p, p);
+    lidGeometry.applyMatrix(new Matrix4().makeRotationX(-Maf.PI / 2));
+    lidGeometry.applyMatrix(new Matrix4().makeTranslation(0, 0, .5 * h));
+    this.lid.geometry = lidGeometry;
+    this.lid.geometry.needsUpdate = true;
   }
 
   getGeometry(w, h, d, p) {
@@ -99,23 +114,24 @@ class GiftBox extends Group {
     const hd = .5 * d;
 
     const geometry = merge(
-      quad(-hw, -hh, -hd, hw, -hh, -hd, hw, -hh, hd, -hw, -hh, hd),
+      quad(-hw, -hh, -hd, hw, -hh, -hd, hw, -hh, hd, -hw, -hh, hd, 0, 0, 1, 0, 1, 1, 0, 1, d, w),
 
-      quad(-hw, -hh, -hd, -hw, -hh, hd, -hw, hh, hd, -hw, hh, -hd),
-      quad(hw, -hh, hd, hw, -hh, -hd, hw, hh, -hd, hw, hh, hd),
-      quad(hw, -hh, -hd, -hw, -hh, -hd, -hw, hh, -hd, hw, hh, -hd),
-      quad(-hw, -hh, hd, hw, -hh, hd, hw, hh, hd, -hw, hh, hd),
+      quad(-hw, -hh, -hd, -hw, -hh, hd, -hw, hh, hd, -hw, hh, -hd, 0, 0, 1, 0, 1, 1, 0, 1, d, h),
+      quad(hw, -hh, hd, hw, -hh, -hd, hw, hh, -hd, hw, hh, hd, 0, 0, 1, 0, 1, 1, 0, 1, d, h),
+      quad(hw, -hh, -hd, -hw, -hh, -hd, -hw, hh, -hd, hw, hh, -hd, 0, 0, 1, 0, 1, 1, 0, 1, w, h),
+      quad(-hw, -hh, hd, hw, -hh, hd, hw, hh, hd, -hw, hh, hd, 0, 0, 1, 0, 1, 1, 0, 1, w, h),
 
-      quad((hw - p), -(hh - p), -(hd - p), -(hw - p), -(hh - p), -(hd - p), -(hw - p), -(hh - p), (hd - p), (hw - p), -(hh - p), (hd - p)),
-      quad(-(hw - p), -(hh - p), (hd - p), -(hw - p), -(hh - p), -(hd - p), -(hw - p), hh, -(hd - p), -(hw - p), hh, (hd - p)),
-      quad((hw - p), -(hh - p), -(hd - p), (hw - p), -(hh - p), (hd - p), (hw - p), hh, (hd - p), (hw - p), hh, -(hd - p)),
-      quad((hw - p), -(hh - p), (hd - p), -(hw - p), -(hh - p), (hd - p), -(hw - p), hh, (hd - p), (hw - p), hh, (hd - p)),
-      quad(-(hw - p), -(hh - p), -(hd - p), (hw - p), -(hh - p), -(hd - p), (hw - p), hh, -(hd - p), -(hw - p), hh, -(hd - p)),
+      quad((hw - p), -(hh - p), -(hd - p), -(hw - p), -(hh - p), -(hd - p), -(hw - p), -(hh - p), (hd - p), (hw - p), -(hh - p), (hd - p), 0, 0, 1, 0, 1, 1, 0, 1, w - 2 * p, d - 2 * p),
 
-      quad(hw, hh, -hd, -hw, hh, -hd, -(hw - p), hh, -(hd - p), hw - p, hh, -(hd - p)),
-      quad(-hw, hh, hd, hw, hh, hd, hw - p, hh, hd - p, -(hw - p), hh, hd - p),
-      quad(-hw, hh, -hd, -hw, hh, hd, -(hw - p), hh, hd - p, -(hw - p), hh, -(hd - p)),
-      quad(hw, hh, hd, hw, hh, -hd, hw - p, hh, -(hd - p), hw - p, hh, hd - p),
+      quad(-(hw - p), -(hh - p), (hd - p), -(hw - p), -(hh - p), -(hd - p), -(hw - p), hh, -(hd - p), -(hw - p), hh, (hd - p), 0, 0, 1, 0, 1, 1, 0, 1, d - 2 * p, h - 2 * p),
+      quad((hw - p), -(hh - p), -(hd - p), (hw - p), -(hh - p), (hd - p), (hw - p), hh, (hd - p), (hw - p), hh, -(hd - p), 0, 0, 1, 0, 1, 1, 0, 1, d - 2 * p, h - 2 * p),
+      quad((hw - p), -(hh - p), (hd - p), -(hw - p), -(hh - p), (hd - p), -(hw - p), hh, (hd - p), (hw - p), hh, (hd - p), 0, 0, 1, 0, 1, 1, 0, 1, w - 2 * p, h - 2 * p),
+      quad(-(hw - p), -(hh - p), -(hd - p), (hw - p), -(hh - p), -(hd - p), (hw - p), hh, -(hd - p), -(hw - p), hh, -(hd - p), 0, 0, 1, 0, 1, 1, 0, 1, w - 2 * p, h - 2 * p),
+
+      quad(hw, hh, -hd, -hw, hh, -hd, -(hw - p), hh, -(hd - p), hw - p, hh, -(hd - p), 0, 0, 0, 0, 0, 0, 0, 0, w, d),
+      quad(-hw, hh, hd, hw, hh, hd, hw - p, hh, hd - p, -(hw - p), hh, hd - p, 0, 0, 0, 0, 0, 0, 0, 0, w, d),
+      quad(-hw, hh, -hd, -hw, hh, hd, -(hw - p), hh, hd - p, -(hw - p), hh, -(hd - p), 0, 0, 0, 0, 0, 0, 0, 0, w, d),
+      quad(hw, hh, hd, hw, hh, -hd, hw - p, hh, -(hd - p), hw - p, hh, hd - p, 0, 0, 0, 0, 0, 0, 0, 0, w, d),
     );
 
     return geometry;
