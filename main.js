@@ -3,6 +3,10 @@ import { renderer, setSize, animate, render, init } from './modules/scene.js';
 const startBtn = document.getElementById('start');
 const loading = document.getElementById('loading');
 
+if (!Element.prototype.requestFullscreen) {
+  Element.prototype.requestFullscreen = Element.prototype.mozRequestFullScreen || Element.prototype.webkitRequestFullScreen;
+}
+
 async function run() {
   await init();
   //animate();
