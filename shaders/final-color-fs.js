@@ -1,4 +1,4 @@
-import fxaa from '../../shaders/fxaa.js';
+import fxaa from './fxaa.js';
 
 const fs = `
 precision highp float;

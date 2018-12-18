@@ -1,4 +1,4 @@
-import grayscale from '../../shaders/grayscale.js';
+import grayscale from './grayscale.js';
 
 const fs = `
 precision highp float;

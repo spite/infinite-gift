@@ -1,4 +1,5 @@
 import {
+  PCFShadowMap,
   PCFSoftShadowMap,
   SpotLight,
   Scene,
@@ -18,6 +19,8 @@ import {
   FogExp2,
   AmbientLight,
   RepeatWrapping,
+  PlaneBufferGeometry,
+  MeshNormalMaterial,
   Color,
 } from '../third_party/three.module.js';
 import OrbitControls from '../third_party/THREE.OrbitControls.js';
@@ -39,6 +42,37 @@ import { Paper as Paper6 } from './paper6.js';
 import { Paper as Paper7 } from './paper7.js';
 import { Paper as Paper8 } from './paper8.js';
 import { Paper as Paper9 } from './paper9.js';
+
+const configs = {
+  'low': {
+    textureSize: 256,
+    tileSize: 32,
+    pixelRatio: .5,
+    shadow: PCFShadowMap,
+    material: 'phong',
+  },
+  'medium': {
+    textureSize: 512,
+    tileSize: 64,
+    pixelRatio: .5,
+    shadow: PCFSoftShadowMap,
+    material: 'pbr',
+  },
+  'high': {
+    textureSize: 512,
+    tileSize: 64,
+    pixelRatio: 1,
+    shadow: PCFSoftShadowMap,
+    material: 'pbr',
+  },
+  'vr': {
+    textureSize: 512,
+    tileSize: 32,
+    pixelRatio: 1,
+    shadow: PCFShadowMap,
+    material: 'phong',
+  }
+};
 
 const papers = [
   //Paper6,
@@ -88,8 +122,8 @@ const cameraLight = new SpotLight(0xffffff, 1, 20 * factor, Math.PI / 4, .5, .1)
 cameraLight.castShadow = true;
 cameraLight.shadow.mapSize.width = 512;
 cameraLight.shadow.mapSize.height = 512;
-cameraLight.shadow.camera.near = .1 * factor;
-cameraLight.shadow.camera.far = 20 * factor;
+cameraLight.shadow.camera.near = .5 * factor;
+cameraLight.shadow.camera.far = 1.5 * factor;
 cameraLight.shadow.camera.fov = 30;
 cameraLight.shadow.bias = -.005;
 scene.add(cameraLight);
@@ -152,6 +186,7 @@ const m = new Matrix4();
 const q = new Quaternion();
 const group = new Group();
 const boxes = [];
+const cards = [];
 const queue = [];
 const paperSize = quality === 0 ? 128 : 512;
 const tileSize = paperSize / 8;
@@ -165,6 +200,12 @@ let prevTargetBox = null;
 
 function initScene() {
   for (let j = 0; j < 3; j++) {
+    const card = new Mesh(new PlaneBufferGeometry(.1, .2), new MeshNormalMaterial());
+    //group.add(card);
+    cards.push({
+      mesh: card,
+      quaternion: new Quaternion()
+    });
     const box = new GiftBox(quality);
     box.scale.setScalar(1 / Math.exp(factor * j));
     target.set(Maf.randomInRange(-1, 1), Maf.randomInRange(-1, 1), Maf.randomInRange(-1, 1)).normalize();
@@ -211,11 +252,9 @@ function initScene() {
     if (quality === 0) {
       b.mesh.material.specularMap.setSize(paperSize, paperSize);
       b.mesh.material.specularMap.update(emptyCanvas, 0, 0);
-      b.mesh.maskMaterial.map = b.mesh.material.specularMap;
     } else {
       b.mesh.material.metalnessMap.setSize(paperSize, paperSize);
       b.mesh.material.metalnessMap.update(emptyCanvas, 0, 0);
-      b.mesh.maskMaterial.map = b.mesh.material.metalnessMap;
     }
   });
 }
@@ -224,13 +263,15 @@ function updateBox(ptr, count) {
   const box = boxes[ptr];
   box.mesh.refresh();
   box.mesh.scale.setScalar(1 / Math.exp(factor * count));
-  box.mesh.material.color.setHSL(Maf.randomInRange(0, 1), .5, .5);
   target.set(Maf.randomInRange(-1, 1), Maf.randomInRange(-1, 1), Maf.randomInRange(-1, 1)).normalize();
   m.lookAt(box.mesh.position, target, Object3D.DefaultUp);
   q.setFromRotationMatrix(m);
   box.mesh.quaternion.copy(q);
   q.setFromRotationMatrix(m.getInverse(m));
   box.quaternion.copy(q);
+  const card = cards[ptr];
+  card.mesh.scale.setScalar(1 / Math.exp(factor * count));
+  card.mesh.quaternion.copy(box.mesh.quaternion);
 }
 
 function updateWrappingPaper(ptr) {
@@ -277,7 +318,7 @@ function processQueue(deadline) {
 }*/
 
 function render() {
-  const delta = (performance.now() - startTime) / (duration * 1000);
+  const delta = 1. * (performance.now() - startTime) / (duration * 1000);
   const targetBox = Math.max((~~delta), 0) % boxes.length;
   const prevBox = Maf.mod(targetBox - 1, boxes.length);
   const nextBox = Maf.mod(targetBox + 1, boxes.length);
@@ -290,13 +331,7 @@ function render() {
 
   const qTo = boxes[targetBox].quaternion;
   const qFrom = boxes[prevBox].quaternion;
-  boxes.forEach((b) => {
-    b.mesh.material.color.setRGB(1, 1, 1);
-    b.mesh.visible = false;
-  });
-  boxes[targetBox].mesh.visible = true;
-  boxes[prevBox].mesh.visible = true;
-  boxes[nextBox].mesh.visible = true;
+
   boxes[prevBox].mesh.pivot.rotation.y = Maf.PI - Maf.clamp(3 * (delta % 1) * (Maf.PI), 0, Maf.PI);
   boxes[targetBox].mesh.pivot.rotation.y = (delta % 1) * (Maf.PI);
   boxes[nextBox].mesh.pivot.rotation.y = 0;

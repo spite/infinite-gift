@@ -11,7 +11,7 @@ async function run() {
   startBtn.addEventListener('click', async (e) => {
     startBtn.style.display = 'none';
     await renderer.domElement.requestFullscreen();
-    animate();
+    setTimeout(animate, 500);
   })
 }
 

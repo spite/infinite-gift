@@ -14,6 +14,7 @@ import { ShaderPass } from './shader-pass.js';
 import { ShaderPingPongPass } from './shader-ping-pong-pass.js';
 
 import { fs as highlightFragmentShader } from '../shaders/highlight-fs.js';
+import { fs as dofFragmentShader } from '../shaders/dof-fs.js';
 import { fs as combineFragmentShader } from '../shaders/combine-fs.js';
 import { fs as finalFragmentShader } from '../shaders/final-fs.js';
 import { fs as blurFragmentShader } from '../shaders/blur-fs.js';
@@ -25,8 +26,20 @@ function Post(renderer, params = {}) {
   const h = renderer.getSize().height;
 
   const colorFBO = getFBO(w, h);
-  const maskFBO = getFBO(w, h);
+  const depthFBO = getFBO(w, h);
   const resolution = new Vector2(w, h);
+
+  const dofShader = new RawShaderMaterial({
+    uniforms: {
+      inputTexture: { value: colorFBO },
+      depthTexture: { value: depthFBO },
+      resolution: { value: resolution },
+      time: { value: 0 }
+    },
+    vertexShader: orthoVertexShader,
+    fragmentShader: dofFragmentShader,
+  });
+  const dofPass = new ShaderPass(renderer, dofShader, w, h, RGBAFormat, UnsignedByteType, LinearFilter, LinearFilter, ClampToEdgeWrapping, ClampToEdgeWrapping);
 
   const highlightShader = new RawShaderMaterial({
     uniforms: {
@@ -58,8 +71,7 @@ function Post(renderer, params = {}) {
   const combineShader = new RawShaderMaterial({
     uniforms: {
       resolution: { value: resolution },
-      inputTexture: { value: colorFBO.texture },
-      //screenTexture: { value: screenFBO.texture },
+      inputTexture: { value: colorFBO },
       blur1Texture: { value: blurPasses[0].fbo.texture },
       blur2Texture: { value: blurPasses[1].fbo.texture },
       blur3Texture: { value: blurPasses[2].fbo.texture },
@@ -105,11 +117,12 @@ function Post(renderer, params = {}) {
 
     /*renderer.setClearColor(0, 0);
     boxes.forEach((b) => {
-      b.mesh.box.material = b.mesh.maskMaterial;
-      b.mesh.lid.material = b.mesh.maskMaterial;
+      b.mesh.box.material = b.mesh.depthMaterial;
+      b.mesh.lid.material = b.mesh.depthMaterial;
     });
-    renderer.render(scene, camera, maskFBO);*/
+    renderer.render(scene, camera, depthFBO);*/
 
+    //dofPass.render();
     highlightPass.render();
 
     let offset = 1;
@@ -132,7 +145,8 @@ function Post(renderer, params = {}) {
   function setSize(w, h) {
     resolution.set(w, h);
     colorFBO.setSize(w, h);
-    maskFBO.setSize(w, h);
+    depthFBO.setSize(w, h);
+    dofPass.setSize(w, h);
     combinePass.setSize(w, h);
     finalPass.setSize(w, h);
     finalColorPass.setSize(w, h);

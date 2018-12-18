@@ -1,9 +1,9 @@
-import vignette from '../../shaders/vignette.js';
-import softLight from '../../shaders/soft-light.js';
-import screen from '../../shaders/screen.js';
-import { gammaCorrect, levelRange, finalLevels } from '../../shaders/levels.js';
-import fxaa from '../../shaders/fxaa.js';
-import rgbShift from '../../shaders/rgb-shift.js';
+import vignette from './vignette.js';
+import softLight from './soft-light.js';
+import screen from './screen.js';
+import { gammaCorrect, levelRange, finalLevels } from './levels.js';
+import fxaa from './fxaa.js';
+import rgbShift from './rgb-shift.js';
 
 const fs = `
 precision highp float;

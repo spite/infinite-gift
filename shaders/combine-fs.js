@@ -1,5 +1,5 @@
-import screen from '../../shaders/screen.js';
-import softLight from '../../shaders/soft-light.js';
+import screen from './screen.js';
+import softLight from './soft-light.js';
 
 const fs = `
 precision highp float;
@@ -12,7 +12,7 @@ uniform sampler2D blur2Texture;
 uniform sampler2D blur3Texture;
 uniform sampler2D blur4Texture;
 uniform sampler2D blur5Texture;
-uniform sampler2D discTexture;
+uniform sampler2D depthTexture;
 
 varying vec2 vUv;
 

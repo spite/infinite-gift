@@ -13,9 +13,13 @@ import {
   Vector3,
   Vector2,
   Face3,
-  Matrix4
+  Matrix4,
+  RawShaderMaterial
 } from '../third_party/three.module.js';
 import { Maf } from './maf.js';
+
+import { vs as depthVertexShader } from '../shaders/depth-vs.js';
+import { fs as depthFragmentShader } from '../shaders/depth-fs.js';
 
 function merge() {
   const total = [...arguments].reduce((accumulator, geometry) => accumulator + geometry.attributes.position.count, 0);
@@ -79,7 +83,10 @@ class GiftBox extends Group {
     });
     this.material = this.colorMaterial;
 
-    this.maskMaterial = new MeshBasicMaterial({});
+    this.depthMaterial = new RawShaderMaterial({
+      vertexShader: depthVertexShader,
+      fragmentShader: depthFragmentShader,
+    });
 
     const parts = 8;
     const w = ~~(Maf.randomInRange(.75, 1) * parts) / parts;
