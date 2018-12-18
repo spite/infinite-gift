@@ -8,8 +8,9 @@ async function run() {
   //animate();
   loading.style.display = 'none';
   startBtn.style.display = 'block';
-  startBtn.addEventListener('click', (e) => {
+  startBtn.addEventListener('click', async (e) => {
     startBtn.style.display = 'none';
+    await renderer.domElement.requestFullscreen();
     animate();
   })
 }

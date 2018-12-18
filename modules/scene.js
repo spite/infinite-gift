@@ -28,6 +28,7 @@ import { WEBVR } from '../third_party/WebVR.js';
 import { GiftBox } from './gift-box.js';
 import { Maf } from './maf.js';
 import easings from './easings.js';
+import { Post } from './post.js';
 
 import { Paper as Paper1 } from './paper1.js';
 import { Paper as Paper2 } from './paper2.js';
@@ -40,8 +41,9 @@ import { Paper as Paper8 } from './paper8.js';
 import { Paper as Paper9 } from './paper9.js';
 
 const papers = [
+  //Paper6,
   Paper1,
-  //Paper2,
+  Paper2,
   Paper3,
   Paper4,
   //Paper5,
@@ -51,23 +53,26 @@ const papers = [
   Paper9
 ];
 
-const renderer = new WebGLRenderer();
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.vr.enabled = true;
-renderer.setClearColor(0x202020, 1);
+const renderer = new WebGLRenderer({});
+renderer.setPixelRatio(window.devicePixelRatio / 2);
+//renderer.vr.enabled = true;
+renderer.setClearColor(0xffffff, 1);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = PCFSoftShadowMap;
 
+const post = new Post(renderer);
+
 document.body.appendChild(WEBVR.createButton(renderer));
 
-const factor = 3;
+const factor = 2;
+const quality = 1;
 
 const scene = new Scene();
-scene.fog = new FogExp2(0, .02);
-const camera = new PerspectiveCamera(60, 1, .01, 20 * factor);
-camera.lookAt(scene.position);
+scene.fog = new FogExp2(0xffffff, .01);
+const camera = new PerspectiveCamera(60, 1, .01, 30 * factor);
+//camera.lookAt(scene.position);
 const cameraDummy = new Group();
-cameraDummy.position.set(0, 0, 1.6 * factor);
+cameraDummy.position.set(0, 0, 1.5 * factor);
 cameraDummy.add(camera);
 scene.add(cameraDummy);
 /*camera.position.set(0, 0, 1.6 * factor);
@@ -81,6 +86,8 @@ scene.add(ambient);
 
 const cameraLight = new SpotLight(0xffffff, 1, 20 * factor, Math.PI / 4, .5, .1);
 cameraLight.castShadow = true;
+cameraLight.shadow.mapSize.width = 512;
+cameraLight.shadow.mapSize.height = 512;
 cameraLight.shadow.camera.near = .1 * factor;
 cameraLight.shadow.camera.far = 20 * factor;
 cameraLight.shadow.camera.fov = 30;
@@ -99,9 +106,11 @@ function setSize(w, h) {
   renderer.setSize(w, h);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
+  const dPR = renderer.getPixelRatio();
+  post.setSize(w * dPR, h * dPR);
 }
 
-const duration = .5 * 2 * 7.385;
+const duration = 1 * 2 * 7.385;
 let envMap;
 let normalMap;
 let audio;
@@ -144,8 +153,8 @@ const q = new Quaternion();
 const group = new Group();
 const boxes = [];
 const queue = [];
-const tileSize = 128;
-const paperSize = 512;
+const paperSize = quality === 0 ? 128 : 512;
+const tileSize = paperSize / 8;
 
 const updateCanvas = document.createElement('canvas');
 updateCanvas.width = updateCanvas.height = tileSize;
@@ -156,12 +165,11 @@ let prevTargetBox = null;
 
 function initScene() {
   for (let j = 0; j < 3; j++) {
-    const box = new GiftBox();
+    const box = new GiftBox(quality);
     box.scale.setScalar(1 / Math.exp(factor * j));
     target.set(Maf.randomInRange(-1, 1), Maf.randomInRange(-1, 1), Maf.randomInRange(-1, 1)).normalize();
     m.lookAt(box.position, target, Object3D.DefaultUp);
     q.setFromRotationMatrix(m);
-    q.set(0, 0, 0, 1);
     box.quaternion.copy(q);
     q.setFromRotationMatrix(m.getInverse(m));
     group.add(box);
@@ -170,14 +178,28 @@ function initScene() {
       quaternion: q.clone()
     });
     box.material.map = new UpdatableTexture();
+    box.material.map.anisotropy = renderer.getMaxAnisotropy();
     box.material.map.setRenderer(renderer);
     box.material.map.wrapS = box.material.map.wrapT = RepeatWrapping;
-    box.material.metalnessMap = new UpdatableTexture();
-    box.material.metalnessMap.setRenderer(renderer);
-    box.material.metalnessMap.wrapS = box.material.metalnessMap.wrapT = RepeatWrapping;
-    box.material.color = new Color(0xffffff);
     box.material.roughnes = .5;
     box.material.metalness = 1;
+    if (quality === 0) {
+      box.material.specularMap = new UpdatableTexture();
+      box.material.specularMap.anisotropy = renderer.getMaxAnisotropy();
+      box.material.specularMap.setRenderer(renderer);
+      box.material.specularMap.wrapS = box.material.specularMap.wrapT = RepeatWrapping;
+    } else {
+      box.material.metalnessMap = new UpdatableTexture();
+      box.material.map.metalnessMap = renderer.getMaxAnisotropy();
+      box.material.metalnessMap.setRenderer(renderer);
+      box.material.metalnessMap.wrapS = box.material.metalnessMap.wrapT = RepeatWrapping;
+    }
+    box.material.normalMap = normalMap;
+    box.material.normalMap.wrapS = box.material.normalMap.wrapT = RepeatWrapping;
+    box.material.normalScale.set(.1, .1);
+    box.material.envMap = envMap;
+    box.material.envMapIntensity = 1.;
+    box.material.needsUpdate = true;
   }
   scene.add(group);
   renderer.render(scene, camera);
@@ -186,8 +208,15 @@ function initScene() {
     emptyCanvas.width = emptyCanvas.height = paperSize;
     b.mesh.material.map.setSize(paperSize, paperSize);
     b.mesh.material.map.update(emptyCanvas, 0, 0);
-    b.mesh.material.metalnessMap.setSize(paperSize, paperSize);
-    b.mesh.material.metalnessMap.update(emptyCanvas, 0, 0);
+    if (quality === 0) {
+      b.mesh.material.specularMap.setSize(paperSize, paperSize);
+      b.mesh.material.specularMap.update(emptyCanvas, 0, 0);
+      b.mesh.maskMaterial.map = b.mesh.material.specularMap;
+    } else {
+      b.mesh.material.metalnessMap.setSize(paperSize, paperSize);
+      b.mesh.material.metalnessMap.update(emptyCanvas, 0, 0);
+      b.mesh.maskMaterial.map = b.mesh.material.metalnessMap;
+    }
   });
 }
 
@@ -195,6 +224,7 @@ function updateBox(ptr, count) {
   const box = boxes[ptr];
   box.mesh.refresh();
   box.mesh.scale.setScalar(1 / Math.exp(factor * count));
+  box.mesh.material.color.setHSL(Maf.randomInRange(0, 1), .5, .5);
   target.set(Maf.randomInRange(-1, 1), Maf.randomInRange(-1, 1), Maf.randomInRange(-1, 1)).normalize();
   m.lookAt(box.mesh.position, target, Object3D.DefaultUp);
   q.setFromRotationMatrix(m);
@@ -219,10 +249,10 @@ function updateWrappingPaper(ptr) {
       })
     }
   }
-  for (let y = 0; y < p.colorCanvas.height; y += tileSize) {
-    for (let x = 0; x < p.colorCanvas.width; x += tileSize) {
+  for (let y = 0; y < p.roughnessCanvas.height; y += tileSize) {
+    for (let x = 0; x < p.roughnessCanvas.width; x += tileSize) {
       queue.push({
-        target: box.mesh.material.metalnessMap,
+        target: quality === 0 ? box.mesh.material.specularMap : box.mesh.material.metalnessMap,
         source: p.roughnessCanvas,
         x,
         y,
@@ -231,15 +261,6 @@ function updateWrappingPaper(ptr) {
       })
     }
   }
-  box.mesh.material.map.wrapS = box.mesh.material.map.wrapT = RepeatWrapping;
-  box.mesh.material.metalnessMap.wrapS = box.mesh.material.metalnessMap.wrapT = RepeatWrapping;
-
-  box.mesh.material.normalMap = normalMap;
-  box.mesh.material.normalMap.wrapS = box.mesh.material.normalMap.wrapT = RepeatWrapping;
-  box.mesh.material.normalScale.set(.1, .1);
-  box.mesh.material.envMap = envMap;
-  box.mesh.material.envMapIntensity = 1.;
-  box.mesh.material.needsUpdate = true;
 }
 
 /*requestIdleCallback(processQueue);
@@ -276,20 +297,24 @@ function render() {
   boxes[targetBox].mesh.visible = true;
   boxes[prevBox].mesh.visible = true;
   boxes[nextBox].mesh.visible = true;
-  boxes[prevBox].mesh.pivot.rotation.y = Maf.PI;
+  boxes[prevBox].mesh.pivot.rotation.y = Maf.PI - Maf.clamp(3 * (delta % 1) * (Maf.PI), 0, Maf.PI);
   boxes[targetBox].mesh.pivot.rotation.y = (delta % 1) * (Maf.PI);
   boxes[nextBox].mesh.pivot.rotation.y = 0;
-  //boxes.forEach((b) => b.mesh.material.color.setRGB(1, 1, 1));
-  //boxes[targetBox].mesh.material.color.setRGB(1, 0, 0);
   group.quaternion.copy(qFrom).slerp(qTo, easings.InOutQuad(delta % 1));
   group.scale.setScalar(Math.exp(factor * delta));
-  //camera.lookAt(group.position);
+  target.copy(scene.position);
+  const t = .0001 * performance.now();
+  //target.x += .5 * Math.cos(t);
+  //target.y += .5 * Math.sin(t);
+  camera.lookAt(target);
   camera.rotation.z = .5 * delta * Maf.TAU;
   cameraLight.position.copy(cameraDummy.position);
   cameraLight.position.y += .5;
-  renderer.render(scene, camera);
 
-  for (let j = 0; j < 1; j++) {
+  //renderer.render(scene, camera);
+  post.render(scene, camera, boxes);
+
+  for (let j = 0; j < 8; j++) {
     const task = queue.shift();
     if (task) {
       updateCtx.drawImage(task.source, task.x, task.y, tileSize, tileSize, 0, 0, tileSize, tileSize);

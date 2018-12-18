@@ -16,6 +16,7 @@ class Paper extends WrappingPaper {
     ];
 
     const line = '#c5c5c5';
+    const f = w / 32;
 
     this.drawRect(0, 0, w, h, '#fff', '#000');
 
@@ -28,12 +29,12 @@ class Paper extends WrappingPaper {
         x += rr;
         y += rr;
         var r = Math.random() * rr;
-        if (r < 15) r = 15;
-        while (r > 0) {
-          var paletteIndex = Math.floor(Math.random() * colorPalette.length);
-          this.drawCircle(x, y, r, colorPalette[paletteIndex], { specularColor: "#fff" });
-          r -= 2 + Math.random() * 5;
-        }
+        if (r < f) r = f;
+        //while (r > 0) {
+        var paletteIndex = Math.floor(Math.random() * colorPalette.length);
+        this.drawCircle(x, y, r, colorPalette[paletteIndex], { specularColor: "#fff" });
+        //r -= 2 * f + Math.random() * 5 * f;
+        //}
       }
     }
   }

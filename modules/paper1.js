@@ -22,17 +22,18 @@ class Paper extends WrappingPaper {
     };
 
     const _d = d.bind(this);
+    const f = w / 64;
 
-    for (var i = 0; i < 15; i++) {
-      for (var j = 0; j < 15; j++) {
+    for (var i = 0; i < f; i++) {
+      for (var j = 0; j < f; j++) {
         var paletteIndex = Math.floor(Math.random() * colorPalette.length);
-        var x = i * (w / 15),
-          y = j * (h / 15),
-          r = .5 * w / 15,
+        var x = i * (w / f),
+          y = j * (h / f),
+          r = .5 * w / f,
           m = Math.floor(Math.random() * 3);
         switch (m) {
           case 0:
-            _d(x + .5 * w / 15, y + .5 * h / 15, r);
+            _d(x + .5 * w / f, y + .5 * h / f, r);
             break;
           case 1:
             var rr = r / 2;

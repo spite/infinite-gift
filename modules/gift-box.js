@@ -1,4 +1,20 @@
-import { Mesh, Group, DoubleSide, PlaneGeometry, BufferAttribute, BufferGeometry, Geometry, MeshNormalMaterial, MeshPhongMaterial, MeshPhysicalMaterial, Vector3, Vector2, Face3, Matrix4 } from '../third_party/three.module.js';
+import {
+  Mesh,
+  Group,
+  DoubleSide,
+  PlaneGeometry,
+  BufferAttribute,
+  BufferGeometry,
+  MeshBasicMaterial,
+  Geometry,
+  MeshNormalMaterial,
+  MeshPhongMaterial,
+  MeshPhysicalMaterial,
+  Vector3,
+  Vector2,
+  Face3,
+  Matrix4
+} from '../third_party/three.module.js';
 import { Maf } from './maf.js';
 
 function merge() {
@@ -50,22 +66,25 @@ function quad(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3, u0, v0, u1, v1, u2
 
 class GiftBox extends Group {
 
-  constructor() {
+  constructor(quality) {
     super();
 
     this.padding = .01;
 
-    this.material = new MeshPhysicalMaterial({
+    this.colorMaterial = quality === 0 ? new MeshPhongMaterial({}) : new MeshPhysicalMaterial({
       color: 0xffffff,
       roughness: .8,
       metalness: 0,
       emissive: 0x202020,
     });
+    this.material = this.colorMaterial;
+
+    this.maskMaterial = new MeshBasicMaterial({});
 
     const parts = 8;
     const w = ~~(Maf.randomInRange(.75, 1) * parts) / parts;
     const d = ~~(Maf.randomInRange(.75, 1) * parts) / parts;
-    const h = ~~(Maf.randomInRange(.75, 1) * Math.max(w, d) * parts) / parts;
+    const h = ~~(Maf.randomInRange(.5, .75) * parts) / parts;
     const p = this.padding;
 
     const boxGeometry = this.getGeometry(w, h, d, p);
@@ -93,7 +112,7 @@ class GiftBox extends Group {
     const parts = 4;
     const w = ~~(Maf.randomInRange(.75, 1) * parts) / parts;
     const d = ~~(Maf.randomInRange(.75, 1) * parts) / parts;
-    const h = ~~(Maf.randomInRange(.75, 1) * Math.max(w, d) * parts) / parts;
+    const h = ~~(Maf.randomInRange(.5, .75) * parts) / parts;
     const p = this.padding;
 
     const boxGeometry = this.getGeometry(w, h, d, p);
