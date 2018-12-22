@@ -31,19 +31,19 @@ function Post(renderer, params = {}) {
 
   const dofShader = new RawShaderMaterial({
     uniforms: {
-      inputTexture: { value: colorFBO },
-      depthTexture: { value: depthFBO },
+      inputTexture: { value: colorFBO.texture },
+      depthTexture: { value: depthFBO.texture },
       resolution: { value: resolution },
-      time: { value: 0 }
+      direction: { value: new Vector2(0, 1) }
     },
     vertexShader: orthoVertexShader,
     fragmentShader: dofFragmentShader,
   });
-  const dofPass = new ShaderPass(renderer, dofShader, w, h, RGBAFormat, UnsignedByteType, LinearFilter, LinearFilter, ClampToEdgeWrapping, ClampToEdgeWrapping);
+  const dofPass = new ShaderPingPongPass(renderer, dofShader, w, h, RGBAFormat, UnsignedByteType, LinearFilter, LinearFilter, ClampToEdgeWrapping, ClampToEdgeWrapping);
 
   const highlightShader = new RawShaderMaterial({
     uniforms: {
-      inputTexture: { value: colorFBO },
+      inputTexture: { value: dofPass.fbo.texture },
     },
     vertexShader: orthoVertexShader,
     fragmentShader: highlightFragmentShader,
@@ -71,7 +71,7 @@ function Post(renderer, params = {}) {
   const combineShader = new RawShaderMaterial({
     uniforms: {
       resolution: { value: resolution },
-      inputTexture: { value: colorFBO },
+      inputTexture: { value: dofPass.fbo.texture },
       blur1Texture: { value: blurPasses[0].fbo.texture },
       blur2Texture: { value: blurPasses[1].fbo.texture },
       blur3Texture: { value: blurPasses[2].fbo.texture },
@@ -99,6 +99,7 @@ function Post(renderer, params = {}) {
   const finalColorShader = new RawShaderMaterial({
     uniforms: {
       resolution: { value: resolution },
+      time: { value: 0 },
       inputTexture: { value: finalPass.fbo.texture },
     },
     vertexShader: orthoVertexShader,
@@ -115,30 +116,40 @@ function Post(renderer, params = {}) {
     });
     renderer.render(scene, camera, colorFBO);
 
-    /*renderer.setClearColor(0, 0);
+    renderer.setClearColor(0, 0);
     boxes.forEach((b) => {
       b.mesh.box.material = b.mesh.depthMaterial;
       b.mesh.lid.material = b.mesh.depthMaterial;
     });
-    renderer.render(scene, camera, depthFBO);*/
+    renderer.render(scene, camera, depthFBO);
 
-    //dofPass.render();
+    dofPass.shader.uniforms.inputTexture.value = colorFBO.texture;
+    for (let j = 0; j < 4; j++) {
+      dofPass.shader.uniforms.direction.value.set(1, 0);
+      dofPass.render();
+      dofPass.shader.uniforms.inputTexture.value = dofPass.fbos[dofPass.currentFBO].texture;
+      dofPass.shader.uniforms.direction.value.set(0, 1);
+      dofPass.render();
+      dofPass.shader.uniforms.inputTexture.value = dofPass.fbos[dofPass.currentFBO].texture;
+    }
     highlightPass.render();
 
     let offset = 1;
     blurShader.uniforms.inputTexture.value = highlightPass.fbo.texture;
     for (let j = 0; j < levels; j++) {
-      blurShader.uniforms.direction.value.set(offset, 0);
       const blurPass = blurPasses[j];
+      blurShader.uniforms.direction.value.set(offset, 0);
+      blurShader.uniforms.resolution.value.set(blurPass.width * 2, blurPass.height * 2);
       blurPass.render();
-      blurShader.uniforms.inputTexture.value = blurPass.fbos[blurPass.currentFBO];
+      blurShader.uniforms.inputTexture.value = blurPass.fbos[blurPass.currentFBO].texture;
       blurShader.uniforms.direction.value.set(0, offset);
       blurPass.render();
-      blurShader.uniforms.inputTexture.value = blurPass.fbos[blurPass.currentFBO];
+      blurShader.uniforms.inputTexture.value = blurPass.fbos[blurPass.currentFBO].texture;
     }
 
     combinePass.render();
     finalPass.render();
+    finalColorPass.shader.uniforms.time.value = performance.now();
     finalColorPass.render(true);
   }
 
@@ -148,6 +159,7 @@ function Post(renderer, params = {}) {
     depthFBO.setSize(w, h);
     dofPass.setSize(w, h);
     combinePass.setSize(w, h);
+    highlightPass.setSize(w, h);
     finalPass.setSize(w, h);
     finalColorPass.setSize(w, h);
 

@@ -33,6 +33,8 @@ class ShaderPingPongPass {
     this.orthoQuad.scale.set(width, height, 1.);
     this.orthoScene.add(this.orthoQuad);
     this.texture = this.fbo.texture;
+    this.width = 1;
+    this.height = 1;
 
   }
 
@@ -57,6 +59,9 @@ class ShaderPingPongPass {
     this.orthoCamera.top = height / 2;
     this.orthoCamera.bottom = -height / 2;
     this.orthoCamera.updateProjectionMatrix();
+
+    this.width = width;
+    this.height = height;
 
   }
 

@@ -1,5 +1,6 @@
 import { renderer, setSize, animate, render, init } from './modules/scene.js';
 
+const padding = 80;
 const startBtn = document.getElementById('start');
 const loading = document.getElementById('loading');
 
@@ -9,9 +10,9 @@ if (!Element.prototype.requestFullscreen) {
 
 async function run() {
   await init();
-  //animate();
+  animate();
   loading.style.display = 'none';
-  startBtn.style.display = 'block';
+  //startBtn.style.display = 'block';
   startBtn.addEventListener('click', async (e) => {
     startBtn.style.display = 'none';
     await renderer.domElement.requestFullscreen();
@@ -23,11 +24,12 @@ run();
 
 document.body.appendChild(renderer.domElement);
 renderer.domElement.className = 'render';
+renderer.domElement.id = 'canvas';
 
 try {
   const resizeObserver = new ResizeObserver((entries) => {
     for (let entry of entries) {
-      setSize(document.body.clientWidth, document.body.clientHeight);
+      resize();
     }
   });
   resizeObserver.observe(document.body);
@@ -35,4 +37,11 @@ try {
   window.addEventListener('resize', (e) => setSize(document.body.clientWidth, document.body.clientHeight));
 }
 
-setSize(document.body.clientWidth, document.body.clientHeight);
+function resize() {
+  let w = document.body.clientWidth;
+  let h = document.body.clientHeight;
+  h -= 2 * padding;
+  setSize(w, h);
+}
+
+resize();

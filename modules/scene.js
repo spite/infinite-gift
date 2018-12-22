@@ -42,6 +42,7 @@ import { Paper as Paper6 } from './paper6.js';
 import { Paper as Paper7 } from './paper7.js';
 import { Paper as Paper8 } from './paper8.js';
 import { Paper as Paper9 } from './paper9.js';
+import { Paper as Paper10 } from './paper10.js';
 
 const configs = {
   'low': {
@@ -75,16 +76,17 @@ const configs = {
 };
 
 const papers = [
-  //Paper6,
+  //Paper5,
   Paper1,
   Paper2,
   Paper3,
   Paper4,
-  //Paper5,
+  Paper5,
   Paper6,
   Paper7,
   Paper8,
-  Paper9
+  Paper9,
+  Paper10,
 ];
 
 const renderer = new WebGLRenderer({});
@@ -131,6 +133,8 @@ scene.add(cameraLight);
 let startTime = 0;
 
 function animate() {
+  audio.loop = true;
+  audio.playbackRate = 1;
   audio.play();
   startTime = performance.now();
   renderer.setAnimationLoop(render);
@@ -144,7 +148,7 @@ function setSize(w, h) {
   post.setSize(w * dPR, h * dPR);
 }
 
-const duration = 1 * 2 * 7.385;
+const duration = .5 * 2 * 7.385;
 let envMap;
 let normalMap;
 let audio;
@@ -219,19 +223,19 @@ function initScene() {
       quaternion: q.clone()
     });
     box.material.map = new UpdatableTexture();
-    box.material.map.anisotropy = renderer.getMaxAnisotropy();
+    box.material.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
     box.material.map.setRenderer(renderer);
     box.material.map.wrapS = box.material.map.wrapT = RepeatWrapping;
     box.material.roughnes = .5;
     box.material.metalness = 1;
     if (quality === 0) {
       box.material.specularMap = new UpdatableTexture();
-      box.material.specularMap.anisotropy = renderer.getMaxAnisotropy();
+      box.material.specularMap.anisotropy = renderer.capabilities.getMaxAnisotropy();
       box.material.specularMap.setRenderer(renderer);
       box.material.specularMap.wrapS = box.material.specularMap.wrapT = RepeatWrapping;
     } else {
       box.material.metalnessMap = new UpdatableTexture();
-      box.material.map.metalnessMap = renderer.getMaxAnisotropy();
+      box.material.map.metalnessMap = renderer.capabilities.getMaxAnisotropy();
       box.material.metalnessMap.setRenderer(renderer);
       box.material.metalnessMap.wrapS = box.material.metalnessMap.wrapT = RepeatWrapping;
     }
@@ -274,10 +278,32 @@ function updateBox(ptr, count) {
   card.mesh.quaternion.copy(box.mesh.quaternion);
 }
 
+let sequence = [1];
+let paperCounter = 0;
+
+function buildSequence() {
+  const lastOne = sequence[sequence.length - 1];
+  sequence = [];
+  for (let j = 0; j < papers.length; j++) {
+    sequence.push(j);
+  }
+  do {
+    sequence.sort((a, b) => Maf.randomInRange(-1, 1));
+  } while (lastOne === sequence[0]);
+  console.log(sequence);
+}
+buildSequence();
+
 function updateWrappingPaper(ptr) {
   const box = boxes[ptr];
-  const Paper = papers[~~Maf.randomInRange(0, papers.length)];
+  console.log(paperCounter, sequence[paperCounter]);
+  const Paper = papers[sequence[paperCounter]];
   const p = new Paper(paperSize, paperSize);
+  paperCounter++;
+  if (paperCounter > sequence.length - 1) {
+    buildSequence();
+    paperCounter = 0;
+  }
   for (let y = 0; y < p.colorCanvas.height; y += tileSize) {
     for (let x = 0; x < p.colorCanvas.width; x += tileSize) {
       queue.push({
@@ -339,12 +365,13 @@ function render() {
   group.scale.setScalar(Math.exp(factor * delta));
   target.copy(scene.position);
   const t = .0001 * performance.now();
-  //target.x += .5 * Math.cos(t);
-  //target.y += .5 * Math.sin(t);
+  target.x += .5 * Math.cos(t);
+  target.y += .5 * Math.sin(t);
   camera.lookAt(target);
   camera.rotation.z = .5 * delta * Maf.TAU;
   cameraLight.position.copy(cameraDummy.position);
   cameraLight.position.y += .5;
+  cameraLight.position.z -= 1;
 
   //renderer.render(scene, camera);
   post.render(scene, camera, boxes);

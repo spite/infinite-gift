@@ -78,7 +78,7 @@ class GiftBox extends Group {
     this.colorMaterial = quality === 0 ? new MeshPhongMaterial({}) : new MeshPhysicalMaterial({
       color: 0xffffff,
       roughness: .8,
-      metalness: 0,
+      metalness: .2,
       emissive: 0x202020,
     });
     this.material = this.colorMaterial;
@@ -91,7 +91,7 @@ class GiftBox extends Group {
     const parts = 8;
     const w = ~~(Maf.randomInRange(.75, 1) * parts) / parts;
     const d = ~~(Maf.randomInRange(.75, 1) * parts) / parts;
-    const h = ~~(Maf.randomInRange(.5, .75) * parts) / parts;
+    const h = ~~(Maf.randomInRange(.5, .75) * 16) / 16;
     const p = this.padding;
 
     const boxGeometry = this.getGeometry(w, h, d, p);

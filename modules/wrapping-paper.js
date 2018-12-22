@@ -3,6 +3,9 @@ import { Maf } from './maf.js';
 class WrappingPaper {
 
   constructor(w = 1024, h = 1024) {
+    this.width = w;
+    this.height = h;
+
     this.colorCanvas = document.createElement('canvas');
     this.colorCanvas.width = w;
     this.colorCanvas.height = h;

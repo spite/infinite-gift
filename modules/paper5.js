@@ -1,63 +1,58 @@
 import { WrappingPaper } from './wrapping-paper.js';
 
-function pointDistance(point1, point2) {
-  var xs = 0;
-  var ys = 0;
-
-  xs = point2.x - point1.x;
-  xs = xs * xs;
-
-  ys = point2.y - point1.y;
-  ys = ys * ys;
-
-  return Math.sqrt(xs + ys);
-}
-
 class Paper extends WrappingPaper {
 
   constructor(w, h) {
     super(w, h);
 
     const opts1 = { specularColor: "#000" };
-    const opts2 = { specularColor: "#fff", alpha: 1.0 };
 
-    var colorPalette = [];
-    colorPalette.push("#ffa916");
-    colorPalette.push("#0980b1");
-    colorPalette.push("#ff011d");
-    colorPalette.push("#ff542b");
-    colorPalette.push("#737373");
-    colorPalette.push("#ffd6c9");
-    colorPalette.push("#a2bbd4");
-    colorPalette.push("#b184c2");
-    colorPalette.push("#ffe468");
-    colorPalette.push("#262626");
+    const colorPalette1 = ["#f1c12f", "#c6c6c6", "#fefefe", "#20bfd2", "#6c6c6c", "#484148"];
+    const colorPalette11 = ["#fefefe", "#c6c6c6", "#484148", "#6c6c6c", "#f1c12f", "#20bfd2"];
+    const colorPalette2 = ["#d23177", "#ffffff", "#3d36c9", "#074c8d", "#ef562d", "#ffe156"];
+    const colorPalette21 = ["#ffe156", "#ef562d", "#074c8d", "#3d36c9", "#ffffff", "#d23177"]
+    const colorPalette3 = ["#d71e75", "#ef562d", "#98d6e1", "#f6d258", "#074c8d", "#f2f1ff"];
+    const colorPalette31 = ["#f6d258", "#ef562d", "#d71e75", "#074c8d", "#f2f1ff", "#98d6e1"];
 
-    this.drawRect(0, 0, 512, 512, "#fff", opts1);
-    for (var i = 0; i < 8; i++) {
-      for (var j = 0; j < 8; j++) {
-        this.colorCtx.strokeStyle = "#000";
-        var centerX = (i * (512 / 8)) + ((512 / 8) / 2);
-        var centerY = (j * (512 / 8)) + ((512 / 8) / 2);
+    const palettes = [colorPalette1, colorPalette11, colorPalette2, colorPalette21, colorPalette3, colorPalette31];
+    const colorPalette = palettes[~~(Math.random() * palettes.length)];
 
-        //ctx.strokeRect(i*(512/8),j*(512/8),(512/8),(512/8));
-        for (var k = 0; k < 10; k++) {
-          var limitRandom = 70;
-          var randomDistributionX = 0.25 * (Math.random() + Math.random() + Math.random() + Math.random());
-          var randomDistributionY = 0.25 * (Math.random() + Math.random() + Math.random() + Math.random());
-          var randomDistributionSize = 0.25 * (Math.random() + Math.random() + Math.random() + Math.random());
-          var randomX = (randomDistributionX * limitRandom) - (limitRandom / 2);
-          var randomY = (randomDistributionY * limitRandom) - (limitRandom / 2);
-          var distanceFromCenter = pointDistance({ x: centerX, y: centerY }, { x: (centerX + randomX), y: (centerY + randomY) });
+    /*colorPalette.sort((a, b) =>
+      Math.random() * 2 - 1);
+    console.log(colorPalette)*/
 
-          var distanceNormalize = (distanceFromCenter) / 35;
-          opts2.alpha = (1 - (distanceNormalize * distanceNormalize));
+    const width = 32;
+    const height = 32;
 
-          var paletteIndex = Math.floor(Math.random() * colorPalette.length);
-          this.drawCircle(centerX + randomX, centerY + randomY, randomDistributionSize * 8, colorPalette[paletteIndex], opts2);
+    this.drawRect(0, 0, w, h, "#fff", opts1);
+    for (let y = -1; y < h / height + 1; y++) {
+      for (let x = -1; x < w / width + 1; x++) {
+
+        const path = new Path2D();
+        if (x % 2) {
+          path.moveTo(x * width, y * height);
+          path.lineTo((x + 1) * width, (y + 1) * height);
+          path.lineTo((x + 1) * width, (y + 2) * height);
+          path.lineTo(x * width, (y + 1) * height);
+          path.lineTo(x * width, y * height);
+        } else {
+          path.moveTo(x * width, (y + 1) * height);
+          path.lineTo(x * width, (y + 2) * height);
+          path.lineTo((x + 1) * width, (y + 1) * height);
+          path.lineTo((x + 1) * width, y * height);
+          path.lineTo(x * width, (y + 1) * height);
         }
+
+        this.colorCtx.fillStyle = colorPalette[(2 * y) % colorPalette.length + (x % 2)];
+        this.colorCtx.fill(path);
+
+        const c = ~~(Math.random() * 255);
+        this.roughnessCtx.fillStyle = `rgb(${c},${c},${c})`;
+        this.roughnessCtx.fill(path);
       }
     }
+
+
   }
 }
 
