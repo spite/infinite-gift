@@ -70,12 +70,12 @@ function quad(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3, u0, v0, u1, v1, u2
 
 class GiftBox extends Group {
 
-  constructor(quality) {
+  constructor(material) {
     super();
 
     this.padding = .01;
 
-    this.colorMaterial = quality === 0 ? new MeshPhongMaterial({}) : new MeshPhysicalMaterial({
+    this.colorMaterial = material === 'phong' ? new MeshPhongMaterial({}) : new MeshPhysicalMaterial({
       color: 0xffffff,
       roughness: .8,
       metalness: .2,
@@ -102,7 +102,6 @@ class GiftBox extends Group {
     this.add(this.box);
 
     this.pivot = new Group();
-    this.pivot.position.x = 1;
     const lidGeometry = this.getGeometry(w + 2 * p, .25 * h, d + 2 * p, p);
     lidGeometry.applyMatrix(new Matrix4().makeRotationX(-Maf.PI / 2));
     lidGeometry.applyMatrix(new Matrix4().makeTranslation(0, 0, .5 * h));
@@ -113,6 +112,10 @@ class GiftBox extends Group {
     this.pivot.add(this.lid);
     this.pivot.rotation.y = 0;
     this.add(this.pivot);
+  }
+
+  orientateLid() {
+    this.pivot.position.x = 1;
   }
 
   refresh() {

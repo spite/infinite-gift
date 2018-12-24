@@ -11,7 +11,6 @@ ${grayscale}
 
 void main() {
   vec4 color = texture2D(inputTexture, vUv);
-  //float g = grayscale(color);
   gl_FragColor = vec4(smoothstep(.7, 1., grayscale(color)));
 }
 `;

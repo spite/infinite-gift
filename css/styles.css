@@ -12,6 +12,29 @@ body {
   background: black;
 }
 
+#disclaimer {
+  font-size: 13px;
+  text-align: center;
+  font-family: 'Roboto', sans-serif;
+  line-height: 1.4em;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  padding: 40px;
+  color: #aaa;
+}
+
+#disclaimer p {
+  white-space: nowrap;
+}
+
+#disclaimer b {
+  font-weight: bold;
+  color: white;
+}
+
 .render {
   position: absolute;
   left: 0;
@@ -23,16 +46,78 @@ body {
 }
 
 #options {
-  font-size: 40px;
-  font-family: 'Alex Brush', cursive;
+  font-size: 20px;
+  font-family: 'Berkshire Swash', cursive;
   position: absolute;
   z-index: 10;
-  color: black;
+  color: white;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity 1s ease-out;
+}
+
+#options #webxr {
+  display: none;
+}
+
+#presets,
+#loading {
+  text-align: center;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate3d(-50%, -50%, 0);
+}
+
+#options h1 {
+  font-size: 80px;
+  white-space: nowrap;
+  text-align: center;
+  position: absolute;
+  left: 50%;
+  top: calc(50% - 1em);
+  transform: translate3d(-50%, -50%, 0);
+}
+
+#options h2 {
+  font-size: 20px;
+  white-space: nowrap;
+  text-align: center;
+  position: absolute;
+  left: 50%;
+  top: calc(50% - 8em);
+  transform: translate3d(-50%, -50%, 0);
+}
+
+.hidden {
+  pointer-events: none;
+  opacity: 0;
+}
+
+.visible {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+#presets {
+  display: none;
+  margin-top: 3em;
 }
 
 #options a {
-  color: inherit;
+  color: white;
   text-decoration: none;
+  padding: 1em;
+  display: inline-block;
+  transition: color 250ms ease-out;
+}
+
+#options span {
+  display: block;
 }
 
 #options a:hover {
@@ -47,4 +132,32 @@ body {
   position: absolute;
   left: 0;
   top: 80px;
+  transition: opacity 1s ease-out;
+}
+
+@media only screen and (max-width: 600px) {
+  #options {
+    font-size: 5vw;
+  }
+
+  #options h1 {
+    font-size: 10vw;
+  }
+
+  #options h2 {
+    font-size: 4vw;
+  }
+
+  #presets {
+    margin-top: 20vw;
+  }
+
+  #options a {
+    padding: 3vw;
+    display: inline-block;
+  }
+
+  #options span {
+    white-space: nowrap;
+  }
 }

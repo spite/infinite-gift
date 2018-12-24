@@ -9,17 +9,17 @@ class Paper extends WrappingPaper {
 
     const colorPalette1 = ["#f1c12f", "#c6c6c6", "#fefefe", "#20bfd2", "#6c6c6c", "#484148"];
     const colorPalette11 = ["#fefefe", "#c6c6c6", "#484148", "#6c6c6c", "#f1c12f", "#20bfd2"];
-    const colorPalette2 = ["#d23177", "#ffffff", "#3d36c9", "#074c8d", "#ef562d", "#ffe156"];
-    const colorPalette21 = ["#ffe156", "#ef562d", "#074c8d", "#3d36c9", "#ffffff", "#d23177"]
-    const colorPalette3 = ["#d71e75", "#ef562d", "#98d6e1", "#f6d258", "#074c8d", "#f2f1ff"];
-    const colorPalette31 = ["#f6d258", "#ef562d", "#d71e75", "#074c8d", "#f2f1ff", "#98d6e1"];
+    const colorPalette2 = ["#d23177", "#ffffff", "#ef562d", "#ffe156"];
+    const colorPalette21 = ["#ffffff", "#d23177", "#ef562d", "#ffe156"];
+    const colorPalette3 = ["#d71e75", "#ef562d", "#98d6e1", "#f6d258", ];
+    const colorPalette31 = ["#d71e75", "#ef562d", "#f6d258", "#98d6e1"];
 
     const palettes = [colorPalette1, colorPalette11, colorPalette2, colorPalette21, colorPalette3, colorPalette31];
     const colorPalette = palettes[~~(Math.random() * palettes.length)];
 
-    /*colorPalette.sort((a, b) =>
+    colorPalette.sort((a, b) =>
       Math.random() * 2 - 1);
-    console.log(colorPalette)*/
+    console.log(colorPalette)
 
     const width = 32;
     const height = 32;

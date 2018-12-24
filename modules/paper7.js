@@ -8,48 +8,91 @@ class Paper extends WrappingPaper {
     //object that defines the specular level for the specular image
     const opts1 = { specularColor: "#fff" };
 
-    var colorPalette = [];
-    colorPalette.push("#f6f6f6");
-    colorPalette.push("#ff9b00");
-    colorPalette.push("#ff3200");
-    colorPalette.push("#02827a");
-    colorPalette.push("#330a2d");
+    var colorPalette = [
+      "#f6f6f6",
+      "#ff9b00",
+      "#ff3200",
+      "#02827a",
+      "#330a2d"
+    ];
 
-    var specPalette = [];
-    specPalette.push("#eee");
-    specPalette.push("#aaa");
-    specPalette.push("#888");
-    specPalette.push("#666");
-    specPalette.push("#444");
+    var specPalette = [
+      "#eee",
+      "#aaa",
+      "#888",
+      "#666",
+      "#444"
+    ];
 
-    this.drawRect(0, 0, 512, 512, '#340a2d', '#000');
+    this.drawRect(0, 0, w, h, '#340a2d', '#000');
 
-    function d(x, y, r, c) {
-      var paletteIndex = Math.floor(Math.random() * colorPalette.length);
-      this.drawCircle(x, y, r, colorPalette[paletteIndex], opts1);
-      this.colorCtx.beginPath();
-      this.colorCtx.lineWidth = .5;
-      this.colorCtx.strokeStyle = 0xc5c5c5;
-      this.colorCtx.arc(x, y, r, 0, 2 * Math.PI);
-      this.colorCtx.stroke();
-    }
-    const _d = d.bind(this);
+    const width = 48;
+    const height = 32;
 
-    for (var i = 0; i < 8; i++) {
-      for (var j = 0; j < 8; j++) {
-        var x = i * (512 / 8),
-          y = j * (512 / 8),
-          rr = 256 / 8;
+    const path = new Path2D();
+    path.moveTo(0, .5 * height);
+    path.lineTo(.25 * width, 0);
+    path.lineTo(.5 * width, 0);
+    path.lineTo(.75 * width, .5 * height);
+    path.lineTo(.5 * width, height);
+    path.lineTo(.25 * width, height);
+    path.lineTo(0, .5 * height);
 
-        x += rr;
-        y += rr;
-        var r = Math.random() * rr;
-        if (r < 15) r = 15;
-        while (r > 0) {
-          var paletteIndex = Math.floor(Math.random() * colorPalette.length);
-          this.drawRect(x - r, y - r, 2 * r, 2 * r, colorPalette[paletteIndex], { specularColor: specPalette[paletteIndex] });
-          r -= 2 + Math.random() * 5;
-        }
+    let id;
+    for (let y = -1; y < h / height + 1; y++) {
+      for (let x = -1; x < w / width + 1; x++) {
+        this.colorCtx.save();
+        this.colorCtx.translate(x * width, y * height);
+        id = ~~(Math.random() * colorPalette.length);
+        this.colorCtx.fillStyle = colorPalette[id];
+        this.colorCtx.fill(path);
+        this.colorCtx.restore();
+        this.colorCtx.save();
+        this.colorCtx.translate((x + .5) * width, (y + .5) * height);
+        id = ~~(Math.random() * colorPalette.length);
+        this.colorCtx.fillStyle = colorPalette[id];
+        this.colorCtx.fill(path);
+        this.colorCtx.restore();
+        this.colorCtx.save();
+        this.colorCtx.translate((x + .25 * .75) * width, (y + .25) * height);
+        this.colorCtx.scale(.5, .5);
+        id = ~~(Math.random() * colorPalette.length);
+        this.colorCtx.fillStyle = colorPalette[id];
+        this.colorCtx.fill(path);
+        this.colorCtx.restore();
+        this.colorCtx.save();
+        this.colorCtx.translate((x + .5 + .75 * .25) * width, (y + .75) * height);
+        this.colorCtx.scale(.5, .5);
+        id = ~~(Math.random() * colorPalette.length);
+        this.colorCtx.fillStyle = colorPalette[id];
+        this.colorCtx.fill(path);
+        this.colorCtx.restore();
+        this.roughnessCtx.save();
+        this.roughnessCtx.translate(x * width, y * height);
+        id = ~~(Math.random() * specPalette.length);
+        this.roughnessCtx.fillStyle = specPalette[id];
+        this.roughnessCtx.fill(path);
+        this.roughnessCtx.restore();
+        this.roughnessCtx.save();
+        this.roughnessCtx.translate((x + .5) * width, (y + .5) * height);
+        id = ~~(Math.random() * specPalette.length);
+        this.roughnessCtx.fillStyle = specPalette[id];
+        this.roughnessCtx.fill(path);
+        this.roughnessCtx.restore();
+        this.roughnessCtx.save();
+        this.roughnessCtx.translate((x + .25 * .75) * width, (y + .25) * height);
+        this.roughnessCtx.scale(.5, .5);
+        id = ~~(Math.random() * specPalette.length);
+        this.roughnessCtx.fillStyle = specPalette[id];
+        this.roughnessCtx.fill(path);
+        this.roughnessCtx.restore();
+        this.roughnessCtx.save();
+        this.roughnessCtx.translate((x + .5 + .75 * .25) * width, (y + .75) * height);
+        this.roughnessCtx.scale(.5, .5);
+        id = ~~(Math.random() * specPalette.length);
+        this.roughnessCtx.fillStyle = specPalette[id];
+        this.roughnessCtx.fill(path);
+        this.roughnessCtx.restore();
       }
     }
 

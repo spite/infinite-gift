@@ -26,7 +26,6 @@ import {
 import OrbitControls from '../third_party/THREE.OrbitControls.js';
 import { EquirectangularToCubemap } from '../third_party/equirectangular-to-cubemap.js';
 import { UpdatableTexture } from '../third_party/UpdatableTexture.js';
-import { WEBVR } from '../third_party/WebVR.js';
 
 import { GiftBox } from './gift-box.js';
 import { Maf } from './maf.js';
@@ -43,6 +42,9 @@ import { Paper as Paper7 } from './paper7.js';
 import { Paper as Paper8 } from './paper8.js';
 import { Paper as Paper9 } from './paper9.js';
 import { Paper as Paper10 } from './paper10.js';
+import { Paper as Paper11 } from './paper11.js';
+import { Paper as Paper12 } from './paper12.js';
+import { Paper as Paper13 } from './paper13.js';
 
 const configs = {
   'low': {
@@ -51,13 +53,15 @@ const configs = {
     pixelRatio: .5,
     shadow: PCFShadowMap,
     material: 'phong',
+    post: false
   },
-  'medium': {
+  'std': {
     textureSize: 512,
     tileSize: 64,
     pixelRatio: .5,
     shadow: PCFSoftShadowMap,
     material: 'pbr',
+    post: true,
   },
   'high': {
     textureSize: 512,
@@ -65,18 +69,29 @@ const configs = {
     pixelRatio: 1,
     shadow: PCFSoftShadowMap,
     material: 'pbr',
+    post: true,
   },
-  'vr': {
+  'vrlow': {
     textureSize: 512,
     tileSize: 32,
     pixelRatio: 1,
     shadow: PCFShadowMap,
     material: 'phong',
+    post: false
+  },
+  'vrhigh': {
+    textureSize: 512,
+    tileSize: 32,
+    pixelRatio: 1,
+    shadow: PCFShadowMap,
+    material: 'phong',
+    post: false
   }
 };
 
+let config;
+
 const papers = [
-  //Paper5,
   Paper1,
   Paper2,
   Paper3,
@@ -87,21 +102,18 @@ const papers = [
   Paper8,
   Paper9,
   Paper10,
+  Paper11,
+  Paper12,
+  Paper13,
 ];
 
 const renderer = new WebGLRenderer({});
-renderer.setPixelRatio(window.devicePixelRatio / 2);
-//renderer.vr.enabled = true;
 renderer.setClearColor(0xffffff, 1);
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = PCFSoftShadowMap;
 
 const post = new Post(renderer);
 
-document.body.appendChild(WEBVR.createButton(renderer));
-
 const factor = 2;
-const quality = 1;
 
 const scene = new Scene();
 scene.fog = new FogExp2(0xffffff, .01);
@@ -124,15 +136,15 @@ const cameraLight = new SpotLight(0xffffff, 1, 20 * factor, Math.PI / 4, .5, .1)
 cameraLight.castShadow = true;
 cameraLight.shadow.mapSize.width = 512;
 cameraLight.shadow.mapSize.height = 512;
-cameraLight.shadow.camera.near = .5 * factor;
+cameraLight.shadow.camera.near = .01 * factor;
 cameraLight.shadow.camera.far = 1.5 * factor;
-cameraLight.shadow.camera.fov = 30;
-cameraLight.shadow.bias = -.005;
+//cameraLight.shadow.bias = -.005;
 scene.add(cameraLight);
 
-let startTime = 0;
+let startTime;
 
 function animate() {
+  renderer.domElement.className = 'visible render';
   audio.loop = true;
   audio.playbackRate = 1;
   audio.play();
@@ -161,7 +173,11 @@ function loadAssets() {
       audio.addEventListener('canplay', (e) => {
         resolve();
       });
-      audio.src = './assets/track.mp3';
+      if (audio.canPlayType('video/ogg; codecs="theora"')) {
+        audio.src = './assets/track.ogg';
+      } else {
+        audio.src = './assets/track.mp3';
+      }
     }),
     new Promise((resolve, reject) => {
       normalMap = texLoader.load('./assets/normal.jpg', (res) => resolve());
@@ -178,8 +194,19 @@ function loadAssets() {
   ]);
 }
 
-async function init() {
-  await loadAssets();
+const updateCanvas = document.createElement('canvas');
+const updateCtx = updateCanvas.getContext('2d');
+
+async function init(preset) {
+  config = configs[preset];
+
+  renderer.setPixelRatio(window.devicePixelRatio * config.pixelRatio);
+  renderer.shadowMap.type = config.shadow;
+
+  paperSize = config.textureSize;
+  tileSize = config.tileSize;
+  updateCanvas.width = updateCanvas.height = tileSize;
+
   initScene();
   updateBox(0, 0);
   updateWrappingPaper(0);
@@ -192,12 +219,8 @@ const group = new Group();
 const boxes = [];
 const cards = [];
 const queue = [];
-const paperSize = quality === 0 ? 128 : 512;
-const tileSize = paperSize / 8;
-
-const updateCanvas = document.createElement('canvas');
-updateCanvas.width = updateCanvas.height = tileSize;
-const updateCtx = updateCanvas.getContext('2d');
+let paperSize;
+let tileSize;
 
 let depth = 0;
 let prevTargetBox = null;
@@ -210,7 +233,8 @@ function initScene() {
       mesh: card,
       quaternion: new Quaternion()
     });
-    const box = new GiftBox(quality);
+    const box = new GiftBox(config.material);
+    box.orientateLid();
     box.scale.setScalar(1 / Math.exp(factor * j));
     target.set(Maf.randomInRange(-1, 1), Maf.randomInRange(-1, 1), Maf.randomInRange(-1, 1)).normalize();
     m.lookAt(box.position, target, Object3D.DefaultUp);
@@ -228,7 +252,7 @@ function initScene() {
     box.material.map.wrapS = box.material.map.wrapT = RepeatWrapping;
     box.material.roughnes = .5;
     box.material.metalness = 1;
-    if (quality === 0) {
+    if (config.material === 'phong') {
       box.material.specularMap = new UpdatableTexture();
       box.material.specularMap.anisotropy = renderer.capabilities.getMaxAnisotropy();
       box.material.specularMap.setRenderer(renderer);
@@ -253,7 +277,7 @@ function initScene() {
     emptyCanvas.width = emptyCanvas.height = paperSize;
     b.mesh.material.map.setSize(paperSize, paperSize);
     b.mesh.material.map.update(emptyCanvas, 0, 0);
-    if (quality === 0) {
+    if (config.material === 'phong') {
       b.mesh.material.specularMap.setSize(paperSize, paperSize);
       b.mesh.material.specularMap.update(emptyCanvas, 0, 0);
     } else {
@@ -290,13 +314,11 @@ function buildSequence() {
   do {
     sequence.sort((a, b) => Maf.randomInRange(-1, 1));
   } while (lastOne === sequence[0]);
-  console.log(sequence);
 }
 buildSequence();
 
 function updateWrappingPaper(ptr) {
   const box = boxes[ptr];
-  console.log(paperCounter, sequence[paperCounter]);
   const Paper = papers[sequence[paperCounter]];
   const p = new Paper(paperSize, paperSize);
   paperCounter++;
@@ -319,7 +341,7 @@ function updateWrappingPaper(ptr) {
   for (let y = 0; y < p.roughnessCanvas.height; y += tileSize) {
     for (let x = 0; x < p.roughnessCanvas.width; x += tileSize) {
       queue.push({
-        target: quality === 0 ? box.mesh.material.specularMap : box.mesh.material.metalnessMap,
+        target: config.material === 'phong' ? box.mesh.material.specularMap : box.mesh.material.metalnessMap,
         source: p.roughnessCanvas,
         x,
         y,
@@ -344,7 +366,7 @@ function processQueue(deadline) {
 }*/
 
 function render() {
-  const delta = 1. * (performance.now() - startTime) / (duration * 1000);
+  const delta = Math.max(1. * (performance.now() - startTime) / (duration * 1000), 0);
   const targetBox = Math.max((~~delta), 0) % boxes.length;
   const prevBox = Maf.mod(targetBox - 1, boxes.length);
   const nextBox = Maf.mod(targetBox + 1, boxes.length);
@@ -373,8 +395,11 @@ function render() {
   cameraLight.position.y += .5;
   cameraLight.position.z -= 1;
 
-  //renderer.render(scene, camera);
-  post.render(scene, camera, boxes);
+  if (renderer.vr.enabled || config.post === false) {
+    renderer.render(scene, camera);
+  } else {
+    post.render(scene, camera, boxes);
+  }
 
   for (let j = 0; j < 8; j++) {
     const task = queue.shift();
@@ -386,4 +411,4 @@ function render() {
 
 }
 
-export { renderer, setSize, render, animate, init }
+export { renderer, setSize, render, animate, init, loadAssets }
