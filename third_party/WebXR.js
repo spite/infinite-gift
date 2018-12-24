@@ -13,6 +13,26 @@ function detectWebXR() {
     })
 
   }
+
+  if ('getVRDisplays' in navigator) {
+    return new Promise((resolve, reject) => {
+      navigator.getVRDisplays()
+        .then(function(displays) {
+
+          if (displays.length > 0) {
+
+            resolve(displays[0]);
+
+          } else {
+
+            reject();
+
+          }
+
+        }).catch(() => reject());
+    });
+  }
+
   return null;
 
 }
@@ -37,20 +57,25 @@ function startWebXR(device, renderer, options) {
     currentSession = null;
   }
 
-  if (device instanceof XRDevice) {
-    if (currentSession === null) {
-
-      device.requestSession({ immersive: true, exclusive: true /* DEPRECATED */ }).then(onSessionStarted);
-
-    } else {
-
-      currentSession.end();
-
+  try {
+    if (device instanceof XRDevice) {
+      if (currentSession === null) {
+        device.requestSession({ immersive: true, exclusive: true /* DEPRECATED */ }).then(onSessionStarted);
+      } else {
+        currentSession.end();
+      }
     }
+  } catch (e) {
+
   }
 
+  try {
+    if (device instanceof VRDisplay) {
+      device.isPresenting ? device.exitPresent() : device.requestPresent([{ source: renderer.domElement }]);
+    }
+  } catch (e) {}
   renderer.vr.setDevice(device);
-
 }
+
 
 export { detectWebXR, startWebXR }

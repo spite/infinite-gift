@@ -1,5 +1,5 @@
 import { renderer, setSize, animate, render, init, loadAssets } from './modules/scene.js';
-import { detectWebXR, startWebXR } from '../third_party/WebXR.js';
+import { detectWebXR, startWebXR } from './third_party/WebXR.js';
 
 const padding = 80;
 const presets = document.getElementById('presets');
@@ -16,7 +16,12 @@ async function start() {
   renderer.domElement.id = 'canvas';
   resize();
 
-  const WebXRDevice = await detectWebXR(renderer);
+  let WebXRDevice;
+  try {
+    WebXRDevice = await detectWebXR(renderer);
+  } catch (e) {
+
+  }
   if (WebXRDevice) {
     document.getElementById('webxr').style.display = 'block';
   }
@@ -44,16 +49,7 @@ async function run(preset, device) {
   animate();
 }
 
-try {
-  const resizeObserver = new ResizeObserver((entries) => {
-    for (let entry of entries) {
-      resize();
-    }
-  });
-  resizeObserver.observe(document.body);
-} catch (e) {
-  window.addEventListener('resize', (e) => resize);
-}
+window.addEventListener('resize', (e) => resize());
 
 function resize() {
   let w = document.body.clientWidth;

@@ -45,6 +45,8 @@ import { Paper as Paper10 } from './paper10.js';
 import { Paper as Paper11 } from './paper11.js';
 import { Paper as Paper12 } from './paper12.js';
 import { Paper as Paper13 } from './paper13.js';
+import { Paper as Paper14 } from './paper14.js';
+import { Paper as Paper15 } from './paper15.js';
 
 const configs = {
   'low': {
@@ -105,6 +107,8 @@ const papers = [
   Paper11,
   Paper12,
   Paper13,
+  Paper14,
+  Paper15,
 ];
 
 const renderer = new WebGLRenderer({});
