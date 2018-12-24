@@ -43,7 +43,7 @@ class Paper extends WrappingPaper {
           path.lineTo(x * width, (y + 1) * height);
         }
 
-        this.colorCtx.fillStyle = colorPalette[(2 * y) % colorPalette.length + (x % 2)];
+        this.colorCtx.fillStyle = colorPalette[(2 * (y + 1)) % colorPalette.length + (x % 2)];
         this.colorCtx.fill(path);
 
         const c = ~~(Math.random() * 255);
