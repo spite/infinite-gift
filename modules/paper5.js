@@ -38,7 +38,6 @@ class Paper extends WrappingPaper {
     const colorPalette = palettes[~~(Math.random() * palettes.length)];
 
     colorPalette.sort((a, b) => Math.random() * 2 - 1);
-    console.log(colorPalette);
 
     const width = 32;
     const height = 32;

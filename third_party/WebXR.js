@@ -10,22 +10,7 @@ function detectWebXR() {
     });
   }
 
-  if ("getVRDisplays" in navigator) {
-    return new Promise((resolve, reject) => {
-      navigator
-        .getVRDisplays()
-        .then(function(displays) {
-          if (displays.length > 0) {
-            resolve(displays[0]);
-          } else {
-            reject();
-          }
-        })
-        .catch(() => reject());
-    });
-  }
-
-  return null;
+  throw new Error("No WebXR support.");
 }
 
 function startWebXR(device, renderer, options) {
