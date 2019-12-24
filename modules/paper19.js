@@ -7,15 +7,15 @@ class Paper extends WrappingPaper {
     //object that defines the specular level for the specular image
     const opts1 = { specularColor: "#fff" };
 
-    const backgroundColor = "#efe8cc";
+    const backgroundColor = "#bbe6fc";
     const specColorRim = "#ddd";
     const colorPalette1 = [
-      "#a39f8a",
-      "#5d697a",
-      "#c0cb3c",
-      "#fea43b",
-      "#90d6cf",
-      "#efe8cc"
+      "#fef4b5",
+      "#ffec5f",
+      "#f29b9e",
+      "#ef6660",
+      "#6d7db8",
+      "#162661"
     ];
 
     const palettes = [colorPalette1];
@@ -28,31 +28,36 @@ class Paper extends WrappingPaper {
 
     const width = 32;
     const height = 32;
-    const p = 4;
-
-    const path1 = new Path2D();
-    path1.moveTo(-0.5 * width, -0.5 * height);
-    path1.lineTo(0.5 * width, -0.5 * height);
-    path1.arcTo(0.5 * width, 0.5 * height, -0.5 * width, 0.5 * height, width);
-    path1.lineTo(-0.5 * width, -0.5 * height);
 
     function draw(x, y) {
-      const a = (~~(Math.random() * 4) * Math.PI) / 2;
+      const a = Math.random() * 2 * Math.PI;
+
+      this.colorCtx.lineWidth = 0.25 * width;
       this.colorCtx.save();
       this.colorCtx.translate((x + 0.5) * width, (y + 0.5) * height);
       this.colorCtx.rotate(a);
       this.colorCtx.fillStyle =
         colorPalette[~~(Math.random() * colorPalette.length)];
-      this.colorCtx.fill(path1);
+      this.colorCtx.fillRect(
+        -0.25 * width,
+        -0.25 * height,
+        0.5 * width,
+        0.5 * height
+      );
       this.colorCtx.restore();
 
+      this.roughnessCtx.lineWidth = 0.25 * width;
       this.roughnessCtx.save();
       this.roughnessCtx.translate((x + 0.5) * width, (y + 0.5) * height);
       this.roughnessCtx.rotate(a);
       this.roughnessCtx.fillStyle =
         specPalette[~~(Math.random() * specPalette.length)];
-      this.roughnessCtx.fill(path1);
-      this.roughnessCtx.stroke(path1);
+      this.roughnessCtx.fillRect(
+        -0.3 * width,
+        -0.3 * height,
+        0.6 * width,
+        0.6 * height
+      );
       this.roughnessCtx.restore();
     }
 

@@ -8,13 +8,22 @@ import {
   UnsignedByteType,
   OrthographicCamera,
   PlaneBufferGeometry,
-  Mesh,
-} from '../third_party/three.module.js';
+  Mesh
+} from "../third_party/three.module.js";
 
 class ShaderPass {
-
-  constructor(renderer, shader, width, height, format, type, minFilter, magFilter, wrapS, wrapT) {
-
+  constructor(
+    renderer,
+    shader,
+    width,
+    height,
+    format,
+    type,
+    minFilter,
+    magFilter,
+    wrapS,
+    wrapT
+  ) {
     this.renderer = renderer;
     this.shader = shader;
     this.orthoScene = new Scene();
@@ -26,23 +35,27 @@ class ShaderPass {
       format: format || RGBAFormat,
       type: type || UnsignedByteType
     });
-    this.orthoCamera = new OrthographicCamera(width / -2, width / 2, height / 2, height / -2, .00001, 1000);
+    this.orthoCamera = new OrthographicCamera(
+      width / -2,
+      width / 2,
+      height / 2,
+      height / -2,
+      0.00001,
+      1000
+    );
     this.orthoQuad = new Mesh(new PlaneBufferGeometry(1, 1), this.shader);
-    this.orthoQuad.scale.set(width, height, 1.);
+    this.orthoQuad.scale.set(width, height, 1);
     this.orthoScene.add(this.orthoQuad);
     this.texture = this.fbo.texture;
-
   }
 
   render(final) {
-
-    this.renderer.render(this.orthoScene, this.orthoCamera, final ? null : this.fbo);
-
+    this.renderer.setRenderTarget(final ? null : this.fbo);
+    this.renderer.render(this.orthoScene, this.orthoCamera);
   }
 
   setSize(width, height) {
-
-    this.orthoQuad.scale.set(width, height, 1.);
+    this.orthoQuad.scale.set(width, height, 1);
 
     this.fbo.setSize(width, height);
 
@@ -53,9 +66,7 @@ class ShaderPass {
     this.orthoCamera.top = height / 2;
     this.orthoCamera.bottom = -height / 2;
     this.orthoCamera.updateProjectionMatrix();
-
   }
-
 }
 
 export { ShaderPass };

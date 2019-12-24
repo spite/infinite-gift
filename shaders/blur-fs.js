@@ -1,4 +1,4 @@
-import { blur5 } from './fast-separable-gaussian-blur.js';
+import { blur5 } from "./fast-separable-gaussian-blur.js";
 
 const fs = `
 precision highp float;

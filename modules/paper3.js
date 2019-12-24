@@ -1,7 +1,6 @@
-import { WrappingPaper } from './wrapping-paper.js';
+import { WrappingPaper } from "./wrapping-paper.js";
 
 class Paper extends WrappingPaper {
-
   constructor(w, h) {
     super(w, h);
 
@@ -23,7 +22,7 @@ class Paper extends WrappingPaper {
     specPalette.push("#888");
     specPalette.push("#777");
 
-    this.drawRect(0, 0, w, h, '#fff', '#000');
+    this.drawRect(0, 0, w, h, "#fff", "#000");
     const f = w / 512;
 
     for (let i = 0; i < 2000; i++) {
@@ -41,4 +40,4 @@ class Paper extends WrappingPaper {
   }
 }
 
-export { Paper }
+export { Paper };

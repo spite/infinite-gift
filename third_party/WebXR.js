@@ -1,44 +1,34 @@
 function detectWebXR() {
-
-  if ('xr' in navigator) {
-
+  if ("xr" in navigator) {
     return new Promise((resolve, reject) => {
-      navigator.xr.requestDevice().then(function(device) {
-
-        device.supportsSession({ immersive: true, exclusive: true /* DEPRECATED */ })
-          .then(() => resolve(device))
-          .catch(() => reject());
-
-      }).catch(() => reject());
-    })
-
+      navigator.xr
+        .isSessionSupported("immersive-vr")
+        .then(supported => {
+          resolve();
+        })
+        .catch(() => reject());
+    });
   }
 
-  if ('getVRDisplays' in navigator) {
+  if ("getVRDisplays" in navigator) {
     return new Promise((resolve, reject) => {
-      navigator.getVRDisplays()
+      navigator
+        .getVRDisplays()
         .then(function(displays) {
-
           if (displays.length > 0) {
-
             resolve(displays[0]);
-
           } else {
-
             reject();
-
           }
-
-        }).catch(() => reject());
+        })
+        .catch(() => reject());
     });
   }
 
   return null;
-
 }
 
 function startWebXR(device, renderer, options) {
-
   if (options && options.frameOfReferenceType) {
     renderer.vr.setFrameOfReferenceType(options.frameOfReferenceType);
   }
@@ -46,36 +36,23 @@ function startWebXR(device, renderer, options) {
   let currentSession = null;
 
   function onSessionStarted(session) {
-    session.addEventListener('end', onSessionEnded);
+    session.addEventListener("end", onSessionEnded);
     renderer.vr.setSession(session);
     currentSession = session;
   }
 
   function onSessionEnded(event) {
-    currentSession.removeEventListener('end', onSessionEnded);
+    currentSession.removeEventListener("end", onSessionEnded);
     renderer.vr.setSession(null);
     currentSession = null;
   }
 
-  try {
-    if (device instanceof XRDevice) {
-      if (currentSession === null) {
-        device.requestSession({ immersive: true, exclusive: true /* DEPRECATED */ }).then(onSessionStarted);
-      } else {
-        currentSession.end();
-      }
-    }
-  } catch (e) {
+  var sessionInit = { optionalFeatures: ["local-floor", "bounded-floor"] };
+  navigator.xr
+    .requestSession("immersive-vr", sessionInit)
+    .then(onSessionStarted);
 
-  }
-
-  try {
-    if (device instanceof VRDisplay) {
-      device.isPresenting ? device.exitPresent() : device.requestPresent([{ source: renderer.domElement }]);
-    }
-  } catch (e) {}
-  renderer.vr.setDevice(device);
+  //renderer.vr.setDevice(device);
 }
 
-
-export { detectWebXR, startWebXR }
+export { detectWebXR, startWebXR };

@@ -1,7 +1,6 @@
-import { WrappingPaper } from './wrapping-paper.js';
+import { WrappingPaper } from "./wrapping-paper.js";
 
 class Paper extends WrappingPaper {
-
   constructor(w, h) {
     super(w, h);
 
@@ -22,10 +21,9 @@ class Paper extends WrappingPaper {
     specPalette.push("#666");
     specPalette.push("#444");
 
-    this.drawRect(0, 0, 512, 512, '#fff', '#000');
+    this.drawRect(0, 0, 512, 512, "#fff", "#000");
 
     function draw(x, y, w, h, s, depth, l) {
-
       l++;
 
       for (var i = 0; i < s; i++) {
@@ -42,17 +40,17 @@ class Paper extends WrappingPaper {
             _d(xx, yy, d, d, depth, l);
           } else {
             var paletteIndex = Math.floor(Math.random() * colorPalette.length);
-            this.drawRect(xx, yy, d, d, colorPalette[paletteIndex], { specularColor: specPalette[paletteIndex] });
+            this.drawRect(xx, yy, d, d, colorPalette[paletteIndex], {
+              specularColor: specPalette[paletteIndex]
+            });
           }
         }
       }
-
     }
     const _d = draw.bind(this);
 
     _d(0, 0, 512, 512, 15, Math.floor(Math.random() * 3), 0);
-
   }
 }
 
-export { Paper }
+export { Paper };

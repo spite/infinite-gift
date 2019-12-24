@@ -1,7 +1,6 @@
-import { WrappingPaper } from './wrapping-paper.js';
+import { WrappingPaper } from "./wrapping-paper.js";
 
 class Paper extends WrappingPaper {
-
   constructor(w, h) {
     super(w, h);
 
@@ -17,24 +16,31 @@ class Paper extends WrappingPaper {
     colorPalette.push("#fbd66c");
 
     const f = 512 / w;
-    const v = w * 16 / 512;
+    const v = (w * 16) / 512;
 
     for (var i = 0; i < v; i++) {
       for (var j = 0; j < v; j++) {
         //Draw background
         var paletteIndex = Math.floor(Math.random() * colorPalette.length);
-        this.drawRect(i * (w / v), j * (h / v), (w / v), (h / v), colorPalette[paletteIndex], opts1);
+        this.drawRect(
+          i * (w / v),
+          j * (h / v),
+          w / v,
+          h / v,
+          colorPalette[paletteIndex],
+          opts1
+        );
       }
     }
 
-    var sourceTmpCanvas = document.createElement('canvas');
-    var destinationTmpCanvas = document.createElement('canvas');
-    destinationTmpCanvas.setAttribute('width', w);
-    destinationTmpCanvas.setAttribute('height', h);
-    sourceTmpCanvas.setAttribute('width', w);
-    sourceTmpCanvas.setAttribute('height', h);
-    var srcCtx = sourceTmpCanvas.getContext('2d');
-    var dstCtx = destinationTmpCanvas.getContext('2d');
+    var sourceTmpCanvas = document.createElement("canvas");
+    var destinationTmpCanvas = document.createElement("canvas");
+    destinationTmpCanvas.setAttribute("width", w);
+    destinationTmpCanvas.setAttribute("height", h);
+    sourceTmpCanvas.setAttribute("width", w);
+    sourceTmpCanvas.setAttribute("height", h);
+    var srcCtx = sourceTmpCanvas.getContext("2d");
+    var dstCtx = destinationTmpCanvas.getContext("2d");
 
     srcCtx.drawImage(this.colorCanvas, 0, 0);
 
@@ -45,7 +51,15 @@ class Paper extends WrappingPaper {
         var startAngle = Math.floor(Math.random() * 4) * (Math.PI / 2);
         var arcRadians = Math.ceil(Math.random() * 4) * (Math.PI / 2);
         //this.drawArc((i * (512 / v)) + ((512 / v / 2)), (j * (512 / v)) + ((512 / v / 2)), (512 / v / 2), startAngle, arcRadians, "#aaa", opts2);
-        this.drawArc((i * (w / v)), (j * (h / v)), (w / v / 2), startAngle, arcRadians, "#aaa", opts2);
+        this.drawArc(
+          i * (w / v),
+          j * (h / v),
+          w / v / 2,
+          startAngle,
+          arcRadians,
+          "#aaa",
+          opts2
+        );
       }
     }
 
@@ -63,12 +77,20 @@ class Paper extends WrappingPaper {
     for (var i = 0; i <= v; i++) {
       for (var j = 0; j <= v; j++) {
         var paletteIndex = Math.floor(Math.random() * colorPalette.length);
-        var circleWidth = Math.max(Math.ceil(Math.random() * ((w / v / 2) - 10 * f)), 0);
-        this.drawCircle(i * (w / v), j * (h / v), circleWidth, colorPalette[paletteIndex], opts2);
+        var circleWidth = Math.max(
+          Math.ceil(Math.random() * (w / v / 2 - 10 * f)),
+          0
+        );
+        this.drawCircle(
+          i * (w / v),
+          j * (h / v),
+          circleWidth,
+          colorPalette[paletteIndex],
+          opts2
+        );
       }
     }
-
   }
 }
 
-export { Paper }
+export { Paper };

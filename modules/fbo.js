@@ -4,7 +4,7 @@ import {
   LinearFilter,
   RGBAFormat,
   UnsignedByteType
-} from '../third_party/three.module.js';
+} from "../third_party/three.module.js";
 
 function getFBO(w, h, options = {}) {
   const fbo = new WebGLRenderTarget(w, h, {
@@ -20,4 +20,4 @@ function getFBO(w, h, options = {}) {
   return fbo;
 }
 
-export { getFBO }
+export { getFBO };

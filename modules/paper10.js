@@ -1,28 +1,27 @@
-import { WrappingPaper } from './wrapping-paper.js';
+import { WrappingPaper } from "./wrapping-paper.js";
 
 class Paper extends WrappingPaper {
-
   constructor(w, h) {
     super(w, h);
 
     const opts1 = { specularColor: "#000" };
 
     const colorPalette1 = [
-      '#d88559',
-      '#dda8c4',
-      '#c1454d',
-      '#8cc6dc',
-      '#ead562',
-      '#fefff8'
+      "#d88559",
+      "#dda8c4",
+      "#c1454d",
+      "#8cc6dc",
+      "#ead562",
+      "#fefff8"
     ];
 
     const colorPalette2 = [
-      '#f97a4d',
-      '#4199bd',
-      '#455b69',
-      '#c33a4e',
-      '#eaeaec',
-      '#e2e5de',
+      "#f97a4d",
+      "#4199bd",
+      "#455b69",
+      "#c33a4e",
+      "#eaeaec",
+      "#e2e5de"
     ];
 
     const palettes = [colorPalette1, colorPalette2];
@@ -34,7 +33,6 @@ class Paper extends WrappingPaper {
     this.drawRect(0, 0, w, h, "#fff", opts1);
     for (let y = -1; y < h / height + 1; y++) {
       for (let x = -1; x < w / width + 1; x++) {
-
         const path1 = new Path2D();
         const path2 = new Path2D();
         if ((x + y) % 2) {
@@ -71,9 +69,7 @@ class Paper extends WrappingPaper {
         this.roughnessCtx.fill(path2);
       }
     }
-
-
   }
 }
 
-export { Paper }
+export { Paper };

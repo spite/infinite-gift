@@ -1,47 +1,60 @@
-import { renderer, setSize, animate, render, init, loadAssets } from './modules/scene.js';
-import { detectWebXR, startWebXR } from './third_party/WebXR.js';
+import {
+  renderer,
+  setSize,
+  animate,
+  render,
+  init,
+  loadAssets
+} from "./modules/scene.js";
+import { detectWebXR, startWebXR } from "./third_party/WebXR.js";
 
 const padding = 80;
-const presets = document.getElementById('presets');
-const options = document.getElementById('options');
-const loading = document.getElementById('loading');
+const presets = document.getElementById("presets");
+const options = document.getElementById("options");
+const loading = document.getElementById("loading");
 
 if (!Element.prototype.requestFullscreen) {
-  Element.prototype.requestFullscreen = Element.prototype.mozRequestFullScreen || Element.prototype.webkitRequestFullScreen;
+  Element.prototype.requestFullscreen =
+    Element.prototype.mozRequestFullScreen ||
+    Element.prototype.webkitRequestFullScreen;
 }
 
 async function start() {
   document.body.appendChild(renderer.domElement);
-  renderer.domElement.className = 'hidden render';
-  renderer.domElement.id = 'canvas';
+  renderer.domElement.className = "hidden render";
+  renderer.domElement.id = "canvas";
   resize();
 
-  let WebXRDevice;
+  let isWebXRSupported = false;
   try {
-    WebXRDevice = await detectWebXR(renderer);
-  } catch (e) {
-
-  }
-  if (WebXRDevice) {
-    document.getElementById('webxr').style.display = 'block';
+    await detectWebXR(renderer);
+    isWebXRSupported = true;
+  } catch (e) {}
+  if (isWebXRSupported) {
+    document.getElementById("webxr").style.display = "block";
   }
   await loadAssets();
-  loading.style.display = 'none';
-  presets.style.display = 'block';
-  const options = presets.querySelectorAll('a');
+  loading.style.display = "none";
+  presets.style.display = "block";
+  const options = presets.querySelectorAll("a");
   for (let option of options) {
-    option.addEventListener('click', (e) => {
-      run(option.id, (option.id === 'vrlow' || option.id === 'vrhigh') ? WebXRDevice : null);
+    option.addEventListener("click", e => {
+      run(
+        option.id,
+        option.id === "vrlow" || option.id === "vrhigh"
+          ? isWebXRSupported
+          : null
+      );
     });
   }
 }
 
 async function run(preset, device) {
   if (device) {
-    renderer.vr.enabled = true;
+    renderer.xr.enabled = true;
   }
   await init(preset);
-  options.className = 'hidden';
+  options.className = "hidden";
   if (device) {
     startWebXR(device, renderer);
   }
@@ -49,7 +62,7 @@ async function run(preset, device) {
   animate();
 }
 
-window.addEventListener('resize', (e) => resize());
+window.addEventListener("resize", e => resize());
 
 function resize() {
   let w = document.body.clientWidth;
@@ -58,4 +71,4 @@ function resize() {
   setSize(w, h);
 }
 
-window.addEventListener('load', start);
+window.addEventListener("load", start);
