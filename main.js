@@ -26,10 +26,10 @@ async function start() {
   resize();
 
   let isWebXRSupported = false;
-  try {
+  /*try {
     await detectWebXR(renderer);
     isWebXRSupported = true;
-  } catch (e) {}
+  } catch (e) {}*/
   if (isWebXRSupported) {
     document.getElementById("webxr").style.display = "block";
   }
